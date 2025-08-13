@@ -10,6 +10,7 @@
     />
     <link rel="preload" as="style" href="assets/css/app.css" />
     <link rel="stylesheet" href="assets/css/app.css" />
+    <link rel="preload" as="image" href="public/samples/questche_400.webp" />
   </head>
   <body data-layout="liquid">
     <header class="header" id="top">
@@ -22,7 +23,7 @@
     <main class="main" id="main" tabindex="-1">
       <section class="uploader" aria-labelledby="uploader-title">
         <h2 id="uploader-title" class="visually-hidden">Importer une image</h2>
-        <div data-layout="duo" data-model="2-1" data-gap="m">
+        <section class="drop-section">
           <div
             class="field-group dropzone"
             id="dropZone"
@@ -44,6 +45,36 @@
               Glissez-déposez un fichier ou cliquez sur le bouton.
             </p>
           </div>
+
+          <div class="sample-suggestion" id="sampleSuggestion">
+            <p class="sample-intro">Pas d'image sous la main&#8239;?</p>
+            <figure class="sample-figure">
+              <picture>
+                <source
+                  type="image/webp"
+                  srcset="public/samples/questche_400.webp"
+                />
+                <img
+                  src="public/samples/questche_400.webp"
+                  width="200"
+                  alt="Exemple de photo Quetsche"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </picture>
+              <figcaption>
+                <button
+                  type="button"
+                  class="sample-load"
+                  data-full-src="public/samples/questche_1920.jpg"
+                  data-file-name="questche_1920.jpg"
+                >
+                  Tester cet exemple
+                </button>
+              </figcaption>
+            </figure>
+          </div>
+
           <div class="field-group resize-panel" id="resizeChoices">
             <div
               class="inline-fields"
@@ -76,7 +107,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </section>
 
       <section
@@ -154,6 +185,7 @@
         <br />
         Traitement 100% local. Aucune donnée envoyée.
       </p>
+  <p><small>Source image exemple : <a href="https://pixabay.com/fr/photos/damons-fin-de-la-saison-prunes-4452658/" target="_blank" rel="noopener noreferrer">mac231 (Pixabay)</a></small></p>
     </footer>
 
     <script type="module" src="assets/js/app.js"></script>

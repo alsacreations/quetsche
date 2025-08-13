@@ -38,12 +38,36 @@ h1 {
   color: var(--on-surface-secondary);
 }
 
-/* Uploader : structuré via data-layout="duo" (voir index.html) */
+/* Uploader  */
+
+.drop-section {
+  display: grid;
+  gap: var(--gap-m);
+  align-content: start;
+  align-items: start;
+
+  @media (width >= 48rem) {
+    grid-template-columns: 2fr 1fr;
+
+    & .sample-suggestion {
+      grid-row: 2;
+      grid-column: 1 / -1;
+    }
+  }
+  @media (width >= 64rem) {
+    grid-template-columns: 2fr auto 1fr;
+
+    & .sample-suggestion {
+      grid-row: 1;
+      grid-column: 2;
+    }
+  }
+}
 
 .field-group {
   display: grid;
   row-gap: var(--gap-s);
-  background: var(--layer-2);
+  background: var(--layer-1);
   padding: var(--spacing-m);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-lg);
@@ -61,6 +85,7 @@ h1 {
   display: inline-flex;
   align-items: center;
   gap: var(--gap-s);
+  min-height: 3lh;
   margin: 0;
   padding: var(--spacing-8) var(--spacing-12);
   background: var(--accent);
@@ -123,8 +148,6 @@ h1 {
 input[type="radio"] {
   accent-color: var(--accent);
 }
-
-/* Ancien bloc .download-list supprimé (remplacé par .download-table) */
 
 /* Tableau de téléchargements (nouvelle version récapitulatif) */
 .download-wrapper {
@@ -197,6 +220,45 @@ input[type="radio"] {
 
 th {
   text-align: start;
+}
+
+/* Image d'exemple */
+.sample-suggestion {
+  display: grid;
+  justify-content: center;
+  justify-items: center;
+  row-gap: var(--gap-s);
+  border-radius: var(--radius-lg);
+}
+.sample-intro {
+  margin: 0;
+  font-size: var(--text-m);
+}
+.sample-figure {
+  margin: 0;
+  display: inline-grid;
+  row-gap: var(--gap-s);
+  text-align: center;
+}
+.sample-figure img {
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.2);
+  background: var(--layer-1);
+}
+.sample-load {
+  cursor: pointer;
+  padding: var(--spacing-8) var(--spacing-16);
+  font-size: var(--text-m);
+  border-radius: var(--radius-md);
+  background: var(--layer-3);
+  color: var(--on-surface);
+  transition: background var(--transition-duration),
+    color var(--transition-duration);
+}
+.sample-load:hover,
+.sample-load:focus-visible {
+  background: var(--accent);
+  color: var(--on-primary);
 }
 
 /* Résultats */

@@ -25,10 +25,55 @@ const metricOrigBpp = document.getElementById("metricOrigBpp");
 const metricProcBpp = document.getElementById("metricProcBpp");
 const metricBytesSaved = document.getElementById("metricBytesSaved");
 const metricCo2Saved = document.getElementById("metricCo2Saved");
+// Échantillon d'exemple
+const sampleContainer = document.getElementById("sampleSuggestion");
 
 let originalImage = null; // { blob, width, height, fileName, size }
 let worker = null;
 initWorker();
+
+// Active le chargement de l'image d'exemple
+if (sampleContainer) {
+  sampleContainer.addEventListener("click", (e) => {
+    const target = e.target;
+    if (target instanceof HTMLElement && target.matches(".sample-load")) {
+      const fullSrc = target.getAttribute("data-full-src");
+      const fname = target.getAttribute("data-file-name") || "sample.jpg";
+      if (fullSrc) {
+        loadSample(fullSrc, fname);
+      }
+    }
+  });
+}
+
+async function loadSample(url, fileName) {
+  try {
+    announceStatus("Chargement de l'exemple…", true);
+    let res = await fetch(url);
+    if (!res.ok) {
+      // Fallback orthographe (quetsche vs questche)
+      const alt = url.includes("questche")
+        ? url.replace("questche", "quetsche")
+        : url.replace("quetsche", "questche");
+      res = await fetch(alt);
+      if (res.ok) {
+        url = alt; // conserve l'URL réellement utilisée
+        if (fileName.includes("questche") || fileName.includes("quetsche")) {
+          fileName = alt.split("/").pop() || fileName;
+        }
+      }
+    }
+    if (!res.ok) throw new Error("404");
+    const blob = await res.blob();
+    const file = new File([blob], fileName, {
+      type: blob.type || "image/jpeg",
+    });
+    await handleFile(file);
+    announceStatus("Exemple chargé, compression…", true);
+  } catch (err) {
+    announceStatus("Impossible de charger l'exemple", false);
+  }
+}
 
 function initWorker() {
   worker = new Worker("assets/js/worker.js", { type: "module" });
