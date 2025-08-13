@@ -7,20 +7,24 @@
 /* Page */
 body {
   grid-template-rows: auto 1fr;
-  padding-block: var(--spacing-l);
+  padding-top: var(--spacing-l);
   background: linear-gradient(145deg, var(--layer-1), var(--layer-3));
   color: var(--on-surface);
   font-family: var(--font-base);
   font-size: var(--text-m);
 }
 
-header,
-footer {
+.header,
+.footer {
   text-align: center;
 }
 
-header {
+.header {
   margin-bottom: var(--spacing-l);
+}
+
+.footer {
+  background-color: var(--layer-1);
 }
 
 main {
