@@ -1,0 +1,13 @@
+/* Cascade Layers
+  config : reset + tokens + theme
+  base   : styles applicatifs
+  On utilise la forme @import url(...) layer(nom); au niveau racine. */
+
+@layer config, base; /* déclaration d'ordre explicite */
+
+@import url("reset.css") layer(config);
+@import url("theme.css") layer(config);
+@import url("theme-tokens.css") layer(config);
+@import url("layouts.css") layer(config);
+@import url("natives.css") layer(config);
+@import url("styles.css") layer(base);
