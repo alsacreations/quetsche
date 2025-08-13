@@ -17,7 +17,9 @@ const compare = document.getElementById("compare");
 const compareInner = document.getElementById("compareInner");
 let origPreview, procPreview, origDim, origSize, procDim, procSize, procGain;
 const downloadGroup = document.getElementById("downloadGroup");
-const downloadList = document.getElementById("downloadList");
+// Tableau de téléchargement
+const downloadTable = document.getElementById("downloadTable");
+let downloadTbody = downloadTable ? downloadTable.querySelector("tbody") : null;
 const metrics = document.getElementById("metrics");
 const metricOrigBpp = document.getElementById("metricOrigBpp");
 const metricProcBpp = document.getElementById("metricProcBpp");
@@ -58,7 +60,10 @@ fileInput.addEventListener("change", () => {
     e.preventDefault();
     e.dataTransfer && (e.dataTransfer.dropEffect = "copy");
     dropZone?.classList.add("is-drag");
-    dropZone?.setAttribute("aria-label", "Déposez le fichier pour lancer la compression");
+    dropZone?.setAttribute(
+      "aria-label",
+      "Déposez le fichier pour lancer la compression"
+    );
   });
 });
 ["dragleave", "drop"].forEach((evt) => {
@@ -82,11 +87,17 @@ dropZone?.addEventListener("keydown", (e) => {
 
 dropZone?.addEventListener("click", (e) => {
   const target = e.target;
-  if (target instanceof Element && (target.closest("label") || target === fileInput)) return;
+  if (
+    target instanceof Element &&
+    (target.closest("label") || target === fileInput)
+  )
+    return;
   fileInput.click();
 });
 
-resizeRadios.forEach((r) => r.addEventListener("change", () => originalImage && process()));
+resizeRadios.forEach((r) =>
+  r.addEventListener("change", () => originalImage && process())
+);
 
 async function handleFile(file) {
   announceStatus("Lecture du fichier…", true);
@@ -96,7 +107,12 @@ async function handleFile(file) {
   const img = new Image();
   img.decoding = "async";
   img.onload = () => {
-    originalImage = { blob, width: img.naturalWidth, height: img.naturalHeight, fileName: file.name };
+    originalImage = {
+      blob,
+      width: img.naturalWidth,
+      height: img.naturalHeight,
+      fileName: file.name,
+    };
     ensurePreviewStructure();
     origPreview.src = url;
     origDim.textContent = img.naturalWidth + "×" + img.naturalHeight;
@@ -127,13 +143,20 @@ async function process() {
   }
   let targetW = originalImage.width;
   let targetH = originalImage.height;
-  if (maxSide && (originalImage.width > maxSide || originalImage.height > maxSide)) {
+  if (
+    maxSide &&
+    (originalImage.width > maxSide || originalImage.height > maxSide)
+  ) {
     if (originalImage.width >= originalImage.height) {
       targetW = maxSide;
-      targetH = Math.round((maxSide * originalImage.height) / originalImage.width);
+      targetH = Math.round(
+        (maxSide * originalImage.height) / originalImage.width
+      );
     } else {
       targetH = maxSide;
-      targetW = Math.round((maxSide * originalImage.width) / originalImage.height);
+      targetW = Math.round(
+        (maxSide * originalImage.width) / originalImage.height
+      );
     }
   }
   const opts = {
@@ -147,7 +170,10 @@ async function process() {
     engine: "native",
   };
   const arrayBuffer = await originalImage.blob.arrayBuffer();
-  worker.postMessage({ type: "process", payload: { buffer: arrayBuffer, options: opts } }, [arrayBuffer]);
+  worker.postMessage(
+    { type: "process", payload: { buffer: arrayBuffer, options: opts } },
+    [arrayBuffer]
+  );
   announceStatus("Traitement en cours…", true);
 }
 
@@ -155,10 +181,15 @@ function buildResults(data) {
   const { previews, meta } = data;
   ensurePreviewStructure();
   procPreview.src = previews.processed.url;
-  procDim.textContent = meta.processed.width + "×" + meta.processed.height + " pixels";
-  origDim.textContent = meta.original.width + "×" + meta.original.height + " pixels";
+  procDim.textContent =
+    meta.processed.width + "×" + meta.processed.height + " pixels";
+  origDim.textContent =
+    meta.original.width + "×" + meta.original.height + " pixels";
   procSize.textContent = formatBytes(meta.processed.size);
-  const deltaPct = meta.original.size > 0 ? (1 - meta.processed.size / meta.original.size) * 100 : 0;
+  const deltaPct =
+    meta.original.size > 0
+      ? (1 - meta.processed.size / meta.original.size) * 100
+      : 0;
   const sign = deltaPct >= 0 ? "-" : "+";
   const absPct = Math.abs(deltaPct).toFixed(1);
   procGain.textContent = sign + absPct + "%";
@@ -170,11 +201,63 @@ function buildResults(data) {
     procGain.classList.add("gain-negative");
     procGain.setAttribute("aria-label", absPct + "% plus lourd");
   }
-  downloadList.innerHTML = "";
-  addDownloadLink(previews.processed.blob, deriveFileName(meta.fileName, meta.processed.mime), "Version compressée");
-  if (previews.webp) addDownloadLink(previews.webp.blob, deriveFileName(meta.fileName, "image/webp"), "Version WebP");
+  // Construire le tableau récapitulatif des versions
+  if (downloadTbody) downloadTbody.innerHTML = "";
+  const rows = [];
+  // Ligne originale (données issues de meta.original)
+  rows.push(
+    makeDownloadRow({
+      label: "Originale",
+      blob: originalImage.blob,
+      fileName: meta.fileName,
+      mime: meta.original.mime || originalImage.blob.type,
+      size: meta.original.size,
+      optimized: false,
+    })
+  );
+  // Ligne compressée
+  rows.push(
+    makeDownloadRow({
+      label: "Compressée",
+      blob: previews.processed.blob,
+      fileName: deriveFileName(meta.fileName, meta.processed.mime),
+      mime: meta.processed.mime,
+      size: meta.processed.size,
+      optimized: false,
+    })
+  );
+  // Ligne WebP éventuelle
+  if (previews.webp) {
+    rows.push(
+      makeDownloadRow({
+        label: "WebP",
+        blob: previews.webp.blob,
+        fileName: deriveFileName(meta.fileName, "image/webp"),
+        mime: "image/webp",
+        size: previews.webp.blob.size,
+        optimized: false,
+      })
+    );
+  }
+  // Trouver la plus légère (hors cas taille 0)
+  const candidates = rows.filter((r) => r.dataset.size > 0);
+  if (candidates.length) {
+    const best = candidates.reduce((a, b) =>
+      Number(b.dataset.size) < Number(a.dataset.size) ? b : a
+    );
+    best.classList.add("is-best");
+    const cell = best.querySelector('[data-col="best"]');
+    if (cell) {
+      cell.innerHTML =
+        '<span class="best-indicator" role="img" aria-label="Version la plus optimisée">✔</span>';
+    }
+  }
+  if (downloadTbody) rows.forEach((tr) => downloadTbody.appendChild(tr));
   // Mettre à jour lien Download dans le figcaption compressé
-  injectInlineDownload(previews.processed.blob, deriveFileName(meta.fileName, meta.processed.mime));
+  injectInlineDownload(
+    previews.processed.blob,
+    deriveFileName(meta.fileName, meta.processed.mime)
+  );
   downloadGroup.hidden = false;
   announceStatus("Compression effectuée", false, true);
   const origPixels = meta.original.width * meta.original.height;
@@ -191,16 +274,39 @@ function buildResults(data) {
   metrics.hidden = false;
 }
 
-function addDownloadLink(blob, fileName, label) {
-  const li = document.createElement("li");
+function makeDownloadRow(data) {
+  /* Construit une ligne du tableau des téléchargements */
+  const { label, blob, fileName, size } = data;
+  const tr = document.createElement("tr");
+  tr.dataset.size = size;
+  // Col version
+  const tdLabel = document.createElement("th");
+  tdLabel.scope = "row";
+  tdLabel.textContent = label;
+  tr.appendChild(tdLabel);
+  // Col poids
+  const tdSize = document.createElement("td");
+  tdSize.textContent = formatBytes(size);
+  tdSize.dataset.col = "size";
+  tr.appendChild(tdSize);
+  // Col lien
+  const tdLink = document.createElement("td");
   const a = document.createElement("a");
   a.download = fileName;
   a.href = URL.createObjectURL(blob);
-  const sizeTxt = formatBytes(blob.size);
-  a.textContent = `${label} – ${fileName} (${sizeTxt})`;
-  a.setAttribute("aria-label", `${label}, ${fileName}, taille ${sizeTxt}`);
-  li.appendChild(a);
-  downloadList.appendChild(li);
+  a.textContent = fileName;
+  a.setAttribute(
+    "aria-label",
+    `${label}, ${fileName}, taille ${formatBytes(size)}`
+  );
+  tdLink.appendChild(a);
+  tr.appendChild(tdLink);
+  // Col meilleur
+  const tdBest = document.createElement("td");
+  tdBest.dataset.col = "best";
+  tdBest.className = "cell-best";
+  tr.appendChild(tdBest);
+  return tr;
 }
 
 function injectInlineDownload(blob, fileName) {
@@ -213,7 +319,10 @@ function injectInlineDownload(blob, fileName) {
   link.href = URL.createObjectURL(blob);
   link.download = fileName;
   link.textContent = "Télécharger";
-  link.setAttribute("aria-label", "Télécharger la version compressée " + fileName);
+  link.setAttribute(
+    "aria-label",
+    "Télécharger la version compressée " + fileName
+  );
   link.style.marginLeft = "0.5rem";
   fig.appendChild(document.createTextNode(" "));
   fig.appendChild(link);

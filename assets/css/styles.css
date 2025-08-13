@@ -70,7 +70,8 @@ h1 {
   border-radius: var(--radius-md);
   text-decoration: none;
   cursor: pointer;
-  transition: background var(--transition-duration), color var(--transition-duration);
+  transition: background var(--transition-duration),
+    color var(--transition-duration);
 }
 .primary-label:hover,
 .primary-label:focus-visible {
@@ -142,12 +143,86 @@ input[type="radio"] {
   border-radius: var(--radius-md);
   font-size: var(--text-m);
   color: var(--on-surface);
-  transition: background var(--transition-duration), color var(--transition-duration);
+  transition: background var(--transition-duration),
+    color var(--transition-duration);
 }
 .download-list a:hover,
 .download-list a:focus-visible {
   background: var(--accent);
   color: var(--on-primary);
+}
+
+/* Tableau de téléchargements (nouvelle version récapitulatif) */
+.download-wrapper {
+  overflow-x: auto; /* Permet scroll horizontal si trop étroit */
+}
+.download-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-m);
+  inline-size: 100%;
+}
+.download-table caption {
+  text-align: left;
+  padding-block: var(--spacing-8);
+}
+.download-table thead th {
+  text-align: left;
+  font-weight: var(--font-weight-bold, 600);
+  padding: var(--spacing-8) var(--spacing-12);
+  background: var(--layer-2);
+  border-bottom: 1px solid var(--border-medium);
+}
+.download-table tbody th,
+.download-table tbody td {
+  padding: var(--spacing-8) var(--spacing-12);
+  vertical-align: middle;
+  border-bottom: 1px solid var(--layer-3);
+}
+.download-table tbody tr:is(:hover, :focus-within) {
+  background: var(--layer-2);
+}
+.download-table a {
+  text-decoration: none;
+  color: var(--link);
+  transition: color var(--transition-duration);
+}
+.download-table a:is(:hover, :focus-visible) {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+.download-table .cell-best {
+  text-align: center;
+  width: 3ch;
+}
+.best-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  aspect-ratio: 1;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--success);
+  color: var(--on-primary);
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1;
+  transition: scale 0.3s;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .download-table tbody tr.is-best .best-indicator {
+    transition: scale 0.3s;
+  }
+  .download-table tbody tr.is-best .best-indicator {
+    scale: 1;
+  }
+  .download-table tbody tr.is-best:is(:hover, :focus-within) .best-indicator {
+    scale: 1.05;
+  }
+}
+
+th {
+  text-align: start;
 }
 
 /* Résultats */
@@ -193,7 +268,8 @@ input[type="radio"] {
   border-radius: var(--radius-md);
   color: var(--on-surface);
   text-decoration: none;
-  transition: background var(--transition-duration), color var(--transition-duration);
+  transition: background var(--transition-duration),
+    color var(--transition-duration);
 }
 .inline-download:hover,
 .inline-download:focus-visible {
