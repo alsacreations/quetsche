@@ -17,12 +17,10 @@
   <body data-layout="liquid">
     <header class="header" id="top">
       <h1>Quetsche</h1>
-      <p class="tagline">
-        Compresse & redimensionne vos images. Simple. Basique.
-      </p>
+      <p class="tagline">Compression d'images. Simple. Basique.</p>
     </header>
 
-    <main class="main" id="main" tabindex="-1">
+    <main class="main" data-layout="boxed" id="main" tabindex="-1">
       <section class="uploader" aria-labelledby="uploader-title">
         <h2 id="uploader-title" class="visually-hidden">Importer une image</h2>
         <section class="drop-section">
@@ -80,6 +78,7 @@
           <div class="field-group resize-panel" id="resizeChoices">
             <div
               class="inline-fields"
+              data-layout="stack"
               style="align-items: flex-start"
               role="radiogroup"
               aria-labelledby="resizeTitle"
@@ -157,15 +156,18 @@
             </div>
           </section>
           <div class="metrics" id="metrics" hidden>
-            <h3>Métriques</h3>
+            <h3>Bilan</h3>
             <ul class="metrics-list" role="list">
-              <li>Bits/pixel original : <span id="metricOrigBpp"></span></li>
-              <li>Bits/pixel compressé : <span id="metricProcBpp"></span></li>
-              <li>Octets économisés : <span id="metricBytesSaved"></span></li>
+              <li>Poids originel : <span id="metricOrigSize"></span></li>
               <li>
-                Réduction CO₂ estimée (transfert) :
-                <span id="metricCo2Saved"></span>
+                Poids compressé (<span id="metricBestFormat"></span>) :
+                <span id="metricBestSize"></span> (<span
+                  id="metricBestPct"
+                ></span
+                >)
               </li>
+              <li>Octets économisés : <span id="metricBytesSaved"></span></li>
+              <li>Réduction CO₂ estimée : <span id="metricCo2Saved"></span></li>
             </ul>
             <p class="metrics-note">
               Estimation CO₂ (~0,5 g / Mo transféré) source indicative :
@@ -183,7 +185,7 @@
 
     <footer class="footer">
       <p>
-        Compression & redimensionnement côté navigateur (aucun envoi serveur).
+        Compression & redimensionnement côté navigateur.
         <br />
         Traitement 100% local. Aucune donnée envoyée.
       </p>

@@ -21,8 +21,10 @@ const downloadGroup = document.getElementById("downloadGroup");
 const downloadTable = document.getElementById("downloadTable");
 let downloadTbody = downloadTable ? downloadTable.querySelector("tbody") : null;
 const metrics = document.getElementById("metrics");
-const metricOrigBpp = document.getElementById("metricOrigBpp");
-const metricProcBpp = document.getElementById("metricProcBpp");
+const metricOrigSize = document.getElementById("metricOrigSize");
+const metricBestSize = document.getElementById("metricBestSize");
+const metricBestFormat = document.getElementById("metricBestFormat");
+const metricBestPct = document.getElementById("metricBestPct");
 const metricBytesSaved = document.getElementById("metricBytesSaved");
 const metricCo2Saved = document.getElementById("metricCo2Saved");
 // Échantillon d'exemple
@@ -305,15 +307,26 @@ function buildResults(data) {
   );
   downloadGroup.hidden = false;
   announceStatus("Compression effectuée", false, true);
-  const origPixels = meta.original.width * meta.original.height;
-  const procPixels = meta.processed.width * meta.processed.height;
-  const origBpp = (meta.original.size * 8) / Math.max(1, origPixels);
-  const procBpp = (meta.processed.size * 8) / Math.max(1, procPixels);
-  const bytesSaved = Math.max(0, meta.original.size - meta.processed.size);
-  const co2PerMB = 0.5;
+  // Détermination de la meilleure version (processed vs webp si présent)
+  let bestSize = meta.processed.size;
+  let bestFormat = meta.processed.mime.includes("webp")
+    ? "WebP"
+    : meta.processed.mime.split("/").pop()?.toUpperCase() || "JPEG";
+  if (previews.webp && previews.webp.blob.size < bestSize) {
+    bestSize = previews.webp.blob.size;
+    bestFormat = "WebP";
+  }
+  const bytesSaved = Math.max(0, meta.original.size - bestSize);
+  const pctSaved =
+    meta.original.size > 0
+      ? ((bytesSaved / meta.original.size) * 100).toFixed(1)
+      : "0";
+  const co2PerMB = 0.5; // g CO2 estimé par Mo transféré
   const co2Saved = (bytesSaved / (1024 * 1024)) * co2PerMB;
-  metricOrigBpp.textContent = origBpp.toFixed(2);
-  metricProcBpp.textContent = procBpp.toFixed(2);
+  metricOrigSize.textContent = formatBytes(meta.original.size);
+  metricBestSize.textContent = formatBytes(bestSize);
+  if (metricBestFormat) metricBestFormat.textContent = bestFormat;
+  if (metricBestPct) metricBestPct.textContent = `-${pctSaved}%`;
   metricBytesSaved.textContent = formatBytes(bytesSaved);
   metricCo2Saved.textContent = co2Saved.toFixed(2) + " g";
   metrics.hidden = false;
