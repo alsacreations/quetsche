@@ -422,11 +422,10 @@ details {
 .gradient-background {
   background: linear-gradient(
     300deg,
-    oklch(0.67 0.18 12 / 30%),
-    oklch(0.73 0.11 195 / 30%),
-    oklch(0.86 0.15 85 / 30%),
-    oklch(0.6 0.19 285 / 30%),
-    oklch(0.4 0.25 260 / 30%)
+    oklch(0.67 0.18 12 / 40%),
+    oklch(0.73 0.11 195 / 40%),
+    oklch(0.6 0.19 285 / 40%),
+    oklch(0.4 0.25 260 / 40%)
   );
   background-size: 300% 300%;
   animation: gradient-animation 10s ease infinite alternate;
