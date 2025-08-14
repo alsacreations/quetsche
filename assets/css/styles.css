@@ -43,7 +43,7 @@ main {
 }
 
 h1 {
-  font-size: var(--text-3xl);
+  font-size: var(--text-4xl);
   margin: 0;
   font-family: var(--font-poppins);
 }
@@ -416,5 +416,33 @@ details {
   }
   100% {
     transform: translate(1px, -2px) rotate(-1deg);
+  }
+}
+
+.gradient-background {
+  background: linear-gradient(
+    300deg,
+    oklch(0.67 0.18 12 / 30%),
+    oklch(0.73 0.11 195 / 30%),
+    oklch(0.86 0.15 85 / 30%),
+    oklch(0.6 0.19 285 / 30%),
+    oklch(0.4 0.25 260 / 30%)
+  );
+  background-size: 300% 300%;
+  animation: gradient-animation 10s ease infinite alternate;
+}
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 25% 0%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 50% 25%;
   }
 }
