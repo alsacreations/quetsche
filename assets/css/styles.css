@@ -4,6 +4,19 @@
  * Règles: n'utiliser que des variables définies dans theme.css ou theme-tokens.css
  * ---------------------------------- */
 
+@font-face {
+  font-family: poppins;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  /* stylelint-disable */
+  src: url("../assets/fonts/Poppins-Variable-opti.woff2") format("woff2")
+      tech("variations"),
+    url("../assets/fonts/Poppins-Variable-opti.woff2")
+      format("woff2-variations");
+  /* stylelint-enable */
+}
+
 /* Page */
 body {
   grid-template-rows: auto 1fr;
@@ -23,10 +36,6 @@ body {
   margin-bottom: var(--spacing-l);
 }
 
-.footer {
-  background-color: var(--layer-1);
-}
-
 main {
   padding: var(--spacing-l) var(--spacing-m);
   display: grid;
@@ -36,6 +45,7 @@ main {
 h1 {
   font-size: var(--text-3xl);
   margin: 0;
+  font-family: var(--font-poppins);
 }
 
 .tagline {
@@ -45,30 +55,6 @@ h1 {
 }
 
 /* Uploader  */
-
-.drop-section {
-  display: grid;
-  gap: var(--gap-m);
-  align-content: start;
-  align-items: start;
-
-  @media (width >= 48rem) {
-    grid-template-columns: 2fr 1fr;
-
-    & .sample-suggestion {
-      grid-row: 2;
-      grid-column: 1 / -1;
-    }
-  }
-  @media (width >= 64rem) {
-    grid-template-columns: 2fr auto 1fr;
-
-    & .sample-suggestion {
-      grid-row: 1;
-      grid-column: 2;
-    }
-  }
-}
 
 .field-group {
   display: grid;
@@ -226,23 +212,21 @@ th {
   text-align: start;
 }
 
+.faq {
+  align-self: end;
+}
+
 /* Image d'exemple */
 .sample-suggestion {
   display: grid;
-  justify-content: center;
-  justify-items: center;
   row-gap: var(--gap-s);
   border-radius: var(--radius-lg);
 }
-.sample-intro {
-  margin: 0;
-  font-size: var(--text-m);
-}
+
 .sample-figure {
   margin: 0;
   display: inline-grid;
   row-gap: var(--gap-s);
-  text-align: center;
 }
 .sample-figure img {
   border-radius: var(--radius-md);
@@ -300,6 +284,15 @@ th {
   color: var(--error);
 }
 
+details {
+  border-radius: var(--radius-lg);
+
+  & summary,
+  & .details-content {
+    background-color: transparent;
+  }
+}
+
 /* Lien inline dans le figcaption compressé */
 .inline-download {
   align-items: center;
@@ -355,6 +348,73 @@ th {
   outline-color: var(--accent);
 }
 
-/* Petits ajustements responsives */
-/* (plus de media queries : responsive géré par layouts utilitaires) */
-/* --- Fin du fichier (legacy supprimé) --- */
+.footer {
+  padding-block: var(--spacing-m);
+  background-color: var(--layer-1);
+  text-align: center;
+
+  & p {
+    margin-bottom: 0;
+  }
+
+  & .logo-alsacreations {
+    width: 150px;
+  }
+
+  & .logo-alsacreations-pepins-inner {
+    fill: var(--surface);
+  }
+  & .logo-alsacreations-pepins-outer,
+  & .logo-alsacreations-alsa,
+  & .logo-alsacreations-creations {
+    fill: var(--on-surface);
+  }
+}
+
+.logo-link {
+  display: inline-block;
+  margin: auto;
+
+  @media (width >= 48rem) {
+    &:focus,
+    &:hover {
+      animation: spaceboots 2s linear infinite alternate;
+    }
+  }
+}
+
+@keyframes spaceboots {
+  0% {
+    transform: translate(2px, 1px) rotate(0);
+  }
+  10% {
+    transform: translate(-1px, -2px) rotate(-1deg);
+  }
+  20% {
+    transform: translate(-3px) rotate(1deg);
+  }
+  30% {
+    transform: translateY(2px) rotate(0);
+  }
+  40% {
+    transform: translate(1px, -1px) rotate(1deg);
+  }
+  50% {
+    transform: translate(-1px, 2px) rotate(-1deg);
+  }
+  60% {
+    transform: translate(-3px, 1px) rotate(0);
+  }
+  70% {
+    transform: translate(2px, 1px) rotate(-1deg);
+  }
+  80% {
+    transform: translate(-1px, -1px) rotate(1deg);
+  }
+  90% {
+    transform: translate(2px, 2px) rotate(0);
+  }
+  100% {
+    transform: translate(1px, -2px) rotate(-1deg);
+  }
+}
