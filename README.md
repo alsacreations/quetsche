@@ -1,4 +1,4 @@
-# Photo Mini
+# Quetsche
 
 Outil ultra-simple de compression et (re)dimensionnement d'images entièrement côté navigateur. Aucun fichier n'est envoyé sur un serveur : tout se fait localement via les APIs Web (File, Canvas, Web Worker).
 
