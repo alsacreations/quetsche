@@ -73,6 +73,80 @@ h1 {
 .dropzone.is-drag {
   border-color: var(--accent);
 }
+.dropzone {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.95));
+  padding: var(--spacing-24);
+  border-radius: calc(var(--radius-lg) + 4px);
+  border-style: dotted;
+  border-width: 3px;
+  border-image: none;
+  border-color: rgba(86, 153, 255, 0.95);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45) inset;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-s);
+  min-height: 12rem;
+}
+
+.dropzone .primary-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap-s);
+  background: transparent;
+  color: var(--accent);
+  padding: 0;
+  border-radius: 0;
+}
+
+.primary-icon {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  background: var(--accent);
+  display: inline-grid;
+  place-items: center;
+  color: var(--on-primary);
+  box-shadow: 0 6px 18px rgba(30, 50, 80, 0.25);
+  position: relative;
+  rotate: 180deg; /* orientation vers le bas */
+  transition: background var(--transition-duration), color var(--transition-duration);
+}
+.dropzone .primary-label:hover,
+.dropzone .primary-label:focus-visible {
+  background: transparent; /* aucune coloration sur le label complet */
+}
+.dropzone .primary-label:hover .primary-icon,
+.dropzone .primary-label:focus-visible .primary-icon {
+  background: var(--accent-invert);
+  color: var(--on-primary);
+}
+.primary-icon::before {
+  content: "";
+  width: 1.1rem;
+  height: 1.1rem;
+  display: block;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'><path d='M12 2v13M5 8l7-6 7 6M21 22H3' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>")
+    no-repeat center/contain;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.dropzone .help {
+  text-align: center;
+  color: var(--on-surface-secondary);
+  margin-top: 0.25rem;
+}
+.help .help-sub {
+  display: inline-block;
+  margin-left: 0.35rem;
+}
+.help .file-types {
+  display: block;
+  margin-top: 0.6rem;
+  color: var(--on-surface);
+}
 .primary-label {
   display: inline-flex;
   align-items: center;

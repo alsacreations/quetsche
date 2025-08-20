@@ -38,7 +38,10 @@
             tabindex="0"
             aria-describedby="dropHint"
           >
-            <label for="fileInput" class="primary-label">Télécharger</label>
+            <label for="fileInput" class="primary-label">
+              <span class="primary-icon" aria-hidden="true"></span>
+              <span class="primary-text">Télécharger</span>
+            </label>
             <input
               id="fileInput"
               name="file"
@@ -47,8 +50,11 @@
               required
             />
             <p class="help" id="dropHint">
-              <strong>Cliquer pour importer une image</strong> ou glisser et
-              déposer.
+              <strong>Cliquer pour importer une image</strong>
+              <span class="help-sub">ou glisser et déposer.</span>
+              <span class="file-types visually-hidden"
+                >SVG, PNG, JPG ou GIF</span
+              >
             </p>
           </div>
 
