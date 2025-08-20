@@ -112,7 +112,8 @@ h1 {
   box-shadow: 0 6px 18px rgba(30, 50, 80, 0.25);
   position: relative;
   rotate: 180deg; /* orientation vers le bas */
-  transition: background var(--transition-duration), color var(--transition-duration);
+  transition: background var(--transition-duration),
+    color var(--transition-duration);
 }
 .dropzone .primary-label:hover,
 .dropzone .primary-label:focus-visible {
