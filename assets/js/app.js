@@ -21,6 +21,8 @@ const downloadGroup = document.getElementById("downloadGroup");
 const downloadTable = document.getElementById("downloadTable");
 let downloadTbody = downloadTable ? downloadTable.querySelector("tbody") : null;
 const metrics = document.getElementById("metrics");
+const resizeChoices = document.getElementById("resizeChoices");
+const bilanPlaceholder = document.getElementById("bilanPlaceholder");
 const metricOrigSize = document.getElementById("metricOrigSize");
 const metricBestSize = document.getElementById("metricBestSize");
 const metricBestFormat = document.getElementById("metricBestFormat");
@@ -160,6 +162,8 @@ async function handleFile(file) {
       height: img.naturalHeight,
       fileName: file.name,
     };
+    // Masquer les panneaux dépendants du résultat jusqu'à la fin de la compression
+    if (resizeChoices) resizeChoices.hidden = true;
     ensurePreviewStructure();
     origPreview.src = url;
     origDim.textContent = img.naturalWidth + "×" + img.naturalHeight;
@@ -227,6 +231,8 @@ async function process() {
 function buildResults(data) {
   const { previews, meta } = data;
   ensurePreviewStructure();
+  // Afficher les panneaux de réglages et le bilan désormais pertinents
+  if (resizeChoices) resizeChoices.hidden = false;
   procPreview.src = previews.processed.url;
   procDim.textContent =
     meta.processed.width + "×" + meta.processed.height + " pixels";
