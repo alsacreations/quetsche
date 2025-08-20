@@ -8,7 +8,7 @@
     <title>Quetsche – Compression de photos</title>
     <meta
       name="description"
-      content="Outil local et basique de compression et redimensionnement d'images (JPEG, PNG)."
+      content="Outil local et basique de compression et redimensionnement d'images (JPEG, PNG, GIF)."
     />
     <link rel="preload" as="style" href="assets/css/app.css" />
     <link rel="stylesheet" href="assets/css/app.css" />
@@ -38,9 +38,7 @@
             tabindex="0"
             aria-describedby="dropHint"
           >
-            <label for="fileInput" class="primary-label"
-              >Choisir une image (JPEG ou PNG)</label
-            >
+            <label for="fileInput" class="primary-label">Télécharger</label>
             <input
               id="fileInput"
               name="file"
@@ -49,7 +47,8 @@
               required
             />
             <p class="help" id="dropHint">
-              Glissez-déposez un fichier ou cliquez sur le bouton.
+              <strong>Cliquer pour importer une image</strong> ou glisser et
+              déposer.
             </p>
           </div>
 
