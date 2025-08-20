@@ -78,7 +78,6 @@ h1 {
   align-items: center;
   justify-content: center;
   gap: var(--gap-s);
-  min-height: 12rem;
 }
 
 .dropzone.is-drag {
@@ -193,6 +192,7 @@ h1 {
 }
 .resize-panel {
   position: relative;
+  align-self: start;
 }
 
 .inline-fields {
