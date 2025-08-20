@@ -58,33 +58,57 @@
             </p>
           </div>
 
-          <div class="field-group resize-panel" id="resizeChoices">
+          <div class="inner" data-layout="stack">
+            <div class="field-group resize-panel" id="resizeChoices">
+              <div
+                class="inline-fields"
+                data-layout="stack"
+                style="align-items: flex-start"
+                role="radiogroup"
+                aria-labelledby="resizeTitle"
+              >
+                <div data-layout="duo" data-model="auto-1" data-gap="s">
+                  <input
+                    type="radio"
+                    name="resize"
+                    id="size-original"
+                    value="original"
+                  />
+                  <label for="size-original">Taille d'origine</label>
+                </div>
+                <div data-layout="duo" data-model="auto-1" data-gap="s">
+                  <input
+                    type="radio"
+                    name="resize"
+                    id="size-web"
+                    value="1200"
+                    checked
+                  />
+                  <label for="size-web">Optimisé Web <i>(conseillé)</i></label>
+                </div>
+              </div>
+            </div>
+
             <div
-              class="inline-fields"
-              data-layout="stack"
-              style="align-items: flex-start"
-              role="radiogroup"
-              aria-labelledby="resizeTitle"
+              class="field-group resize-panel bilan-panel"
+              id="bilanPlaceholder"
+              role="group"
+              aria-labelledby="bilanTitle"
             >
-              <div data-layout="duo" data-model="auto-1" data-gap="s">
-                <input
-                  type="radio"
-                  name="resize"
-                  id="size-original"
-                  value="original"
-                />
-                <label for="size-original">Taille d'origine</label>
-              </div>
-              <div data-layout="duo" data-model="auto-1" data-gap="s">
-                <input
-                  type="radio"
-                  name="resize"
-                  id="size-web"
-                  value="1200"
-                  checked
-                />
-                <label for="size-web">Optimisé Web <i>(conseillé)</i></label>
-              </div>
+              <h3 id="bilanTitle">Bilan</h3>
+              <p>
+                Le bilan apparaitra à cet emplacement, avec la réduction de CO₂
+                estimée.
+              </p>
+              <p class="metrics-note bilan-note">
+                Estimation CO₂ (~0,5 g / Mo transféré) source indicative :
+                <a
+                  href="https://www.websitecarbon.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >Website Carbon</a
+                >
+              </p>
             </div>
           </div>
         </section>
