@@ -29,6 +29,9 @@ const metricBestFormat = document.getElementById("metricBestFormat");
 const metricBestPct = document.getElementById("metricBestPct");
 const metricBytesSaved = document.getElementById("metricBytesSaved");
 const metricCo2Saved = document.getElementById("metricCo2Saved");
+// Panel format
+const formatPanel = document.getElementById("formatPanel");
+let formatRadios = null;
 // Échantillon d'exemple
 const sampleContainer = document.getElementById("sampleSuggestion");
 
@@ -233,6 +236,18 @@ function buildResults(data) {
   ensurePreviewStructure();
   // Afficher les panneaux de réglages et le bilan désormais pertinents
   if (resizeChoices) resizeChoices.hidden = false;
+  // Préparer le panel de format si WebP disponible
+  if (previews.webp && formatPanel) {
+    formatPanel.hidden = false;
+    if (!formatRadios) {
+      formatRadios = formatPanel.querySelectorAll('input[name="format"]');
+      formatRadios.forEach((r) =>
+        r.addEventListener("change", () =>
+          updateDisplayedFormat(previews, meta)
+        )
+      );
+    }
+  }
   procPreview.src = previews.processed.url;
   procDim.textContent =
     meta.processed.width + "×" + meta.processed.height + " pixels";
@@ -336,6 +351,55 @@ function buildResults(data) {
   metricBytesSaved.textContent = formatBytes(bytesSaved);
   metricCo2Saved.textContent = co2Saved.toFixed(2) + " g";
   metrics.hidden = false;
+  // Mise à jour affichage initial selon format par défaut (processed)
+  updateDisplayedFormat(previews, meta);
+}
+
+function updateDisplayedFormat(previews, meta) {
+  const chosen = document.querySelector('input[name="format"]:checked');
+  if (!chosen) return;
+  const mode = chosen.value; // 'processed' ou 'webp'
+  const current =
+    mode === "webp" && previews.webp ? previews.webp : previews.processed;
+  // Mettre à jour l'image compressée affichée sans recalcul
+  if (procPreview && current) {
+    procPreview.src = current.url;
+    procPreview.alt = `Aperçu image compressée (${
+      mode === "webp" ? "WebP" : "original compressé"
+    })`;
+  }
+  // Mettre à jour taille et gain si changement de format choisi
+  if (mode === "webp" && previews.webp) {
+    procSize.textContent = formatBytes(previews.webp.blob.size);
+    const deltaPct =
+      meta.original.size > 0
+        ? (1 - previews.webp.blob.size / meta.original.size) * 100
+        : 0;
+    const sign = deltaPct >= 0 ? "-" : "+";
+    const absPct = Math.abs(deltaPct).toFixed(1);
+    procGain.textContent = sign + absPct + "%";
+  } else {
+    procSize.textContent = formatBytes(meta.processed.size);
+    const deltaPct =
+      meta.original.size > 0
+        ? (1 - meta.processed.size / meta.original.size) * 100
+        : 0;
+    const sign = deltaPct >= 0 ? "-" : "+";
+    const absPct = Math.abs(deltaPct).toFixed(1);
+    procGain.textContent = sign + absPct + "%";
+  }
+  // Mettre à jour le lien inline download si présent
+  if (mode === "webp" && previews.webp) {
+    injectInlineDownload(
+      previews.webp.blob,
+      deriveFileName(meta.fileName, "image/webp")
+    );
+  } else {
+    injectInlineDownload(
+      previews.processed.blob,
+      deriveFileName(meta.fileName, meta.processed.mime)
+    );
+  }
 }
 
 function makeDownloadRow(data) {

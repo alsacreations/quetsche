@@ -111,6 +111,39 @@
               </p>
             </div>
           </div>
+
+          <div
+            class="field-group resize-panel format-panel"
+            id="formatPanel"
+            hidden
+          >
+            <fieldset
+              class="inline-fields"
+              role="radiogroup"
+              aria-labelledby="formatTitle"
+            >
+              <legend id="formatTitle" class="resize-title">Format</legend>
+              <div data-layout="duo" data-model="auto-1" data-gap="s">
+                <input
+                  type="radio"
+                  name="format"
+                  id="format-processed"
+                  value="processed"
+                  checked
+                />
+                <label for="format-processed">Original compressé</label>
+              </div>
+              <div data-layout="duo" data-model="auto-1" data-gap="s">
+                <input
+                  type="radio"
+                  name="format"
+                  id="format-webp"
+                  value="webp"
+                />
+                <label for="format-webp">WebP</label>
+              </div>
+            </fieldset>
+          </div>
         </section>
       </section>
 
