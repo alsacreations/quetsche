@@ -1,5 +1,5 @@
 /* ----------------------------------
- * Styles applicatifs Photo Mini (base layer)
+ * Styles applicatifs (base layer)
  * Dépend de: reset.css, theme.css, theme-tokens.css, layouts.css
  * Règles: n'utiliser que des variables définies dans theme.css ou theme-tokens.css
  * ---------------------------------- */
@@ -69,25 +69,20 @@ h1 {
   position: relative;
   border: 2px dashed var(--border-dark);
   text-align: left;
-}
-.dropzone.is-drag {
-  border-color: var(--accent);
-}
-.dropzone {
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.95));
+  background: var(--layer-1);
   padding: var(--spacing-24);
   border-radius: calc(var(--radius-lg) + 4px);
-  border-style: dotted;
-  border-width: 3px;
-  border-image: none;
-  border-color: rgba(86, 153, 255, 0.95);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45) inset;
+  border: var(--primary) dotted var(--spacing-4);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--gap-s);
   min-height: 12rem;
+}
+
+.dropzone.is-drag {
+  border-color: var(--accent);
 }
 
 .dropzone .primary-label {
@@ -201,11 +196,6 @@ h1 {
 }
 
 .inline-fields {
-  gap: var(--gap-s);
-}
-.inline-fields > div {
-  display: flex;
-  align-items: center;
   gap: var(--gap-s);
 }
 
