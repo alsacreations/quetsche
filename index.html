@@ -67,12 +67,11 @@
             <div class="field-group resize-panel" id="resizeChoices" hidden>
               <fieldset
                 class="inline-fields"
-                data-layout="switcher"
-                style="align-items: flex-start"
+                data-layout="stack"
                 role="radiogroup"
                 aria-labelledby="resizeTitle"
               >
-                <legend id="resizeTitle" class="visually-hidden">
+                <legend id="resizeTitle" class="panel-title">
                   Redimensionnement
                 </legend>
                 <div data-layout="cluster" data-gap="s">
@@ -82,7 +81,10 @@
                     id="size-original"
                     value="original"
                   />
-                  <label for="size-original">Taille d'origine</label>
+                  <label for="size-original"
+                    >Dimensions d'origine
+                    <span class="resize-info" data-role="original-dim"></span
+                  ></label>
                 </div>
                 <div data-layout="cluster" data-gap="s">
                   <input
@@ -92,9 +94,11 @@
                     value="1200"
                     checked
                   />
-                  <label for="size-web"
-                    >Optimisé Web <small>(conseillé)</small></label
-                  >
+                  <label for="size-web">
+                    Dimensions optimisées Web
+                    <span class="resize-info" data-role="web-dim"></span>
+                    <small>(conseillé)</small>
+                  </label>
                 </div>
               </fieldset>
             </div>
@@ -102,12 +106,12 @@
             <div class="field-group format-panel" id="formatPanel" hidden>
               <fieldset
                 class="inline-fields"
-                data-layout="switcher"
+                data-layout="stack"
                 role="radiogroup"
                 aria-labelledby="formatTitle"
               >
-                <legend id="formatTitle" class="resize-title visually-hidden">
-                  Format
+                <legend id="formatTitle" class="panel-title">
+                  Format de fichier
                 </legend>
                 <div data-layout="cluster" data-gap="s">
                   <input
@@ -117,7 +121,10 @@
                     value="processed"
                     checked
                   />
-                  <label for="format-processed">Original compressé</label>
+                  <label for="format-processed"
+                    >Format d'origine
+                    <span class="format-info" data-role="format-original"></span
+                  ></label>
                 </div>
                 <div data-layout="cluster" data-gap="s">
                   <input
@@ -127,7 +134,7 @@
                     value="webp"
                   />
                   <label for="format-webp"
-                    >WebP <small>(conseillé)</small></label
+                    >Format WebP <small>(conseillé)</small></label
                   >
                 </div>
               </fieldset>

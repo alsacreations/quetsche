@@ -193,9 +193,9 @@ h1 {
 }
 /* .help.is-drag supprimé : l'état drag est maintenant uniquement visuel sur .dropzone */
 
-/* Panel redimensionnement */
-.resize-title {
-  margin: 0;
+/* Panels */
+.panel-title {
+  margin-block: 0 var(--spacing-s);
   font-size: var(--text-m);
   font-weight: var(--font-weight-semibold);
 }

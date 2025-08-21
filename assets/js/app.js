@@ -36,6 +36,60 @@ let currentMeta = null; // { original:{size,width,height,mime}, processed:{size,
 let worker = null;
 initWorker();
 
+// Met à jour les libellés des options de redimensionnement avec dimensions calculées
+function updateResizeLabels() {
+  const origSpan = document.querySelector('[data-role="original-dim"]');
+  const webSpan = document.querySelector('[data-role="web-dim"]');
+  if (originalImage && origSpan) {
+    origSpan.textContent = `(${originalImage.width}×${originalImage.height}px)`;
+  }
+  if (originalImage && webSpan) {
+    // Calcule la dimension après contrainte 1200 sur le plus grand côté
+    const target = 1200;
+    const w = originalImage.width;
+    const h = originalImage.height;
+    if (Math.max(w, h) <= target) {
+      webSpan.textContent = `(déjà ${w}×${h}px)`;
+    } else {
+      const ratio = w >= h ? h / w : w / h;
+      let newW, newH;
+      if (w >= h) {
+        newW = target;
+        newH = Math.round(target * ratio);
+      } else {
+        newH = target;
+        newW = Math.round(target * ratio);
+      }
+      webSpan.textContent = `(${newW}×${newH}px)`;
+    }
+  }
+}
+
+// Met à jour l'affichage du format original dans format-panel
+function updateFormatLabels() {
+  const formatSpan = document.querySelector('[data-role="format-original"]');
+  if (!formatSpan) return;
+  if (originalImage) {
+    const type = originalImage.blob.type || ""; // ex: image/jpeg
+    let fmt = "";
+    if (type.startsWith("image/")) {
+      fmt = type.split("/")[1];
+    }
+    if (!fmt && originalImage.fileName) {
+      const m = originalImage.fileName.match(/\.([^.]+)$/);
+      if (m) fmt = m[1];
+    }
+    if (fmt) {
+      if (fmt === "jpeg") fmt = "jpg"; // normalisation
+      formatSpan.textContent = `(${fmt.toUpperCase()})`;
+    } else {
+      formatSpan.textContent = "";
+    }
+  } else {
+    formatSpan.textContent = "";
+  }
+}
+
 // Active le chargement de l'image d'exemple
 if (sampleContainer) {
   sampleContainer.addEventListener("click", (e) => {
@@ -163,6 +217,8 @@ async function handleFile(file) {
       height: img.naturalHeight,
       fileName: file.name,
     };
+    updateResizeLabels();
+    updateFormatLabels();
     // Masquer les panneaux dépendants du résultat jusqu'à la fin de la compression
     if (resizeChoices) resizeChoices.hidden = true;
     ensurePreviewStructure();
@@ -234,6 +290,8 @@ function buildResults(data) {
   currentPreviews = previews;
   currentMeta = meta;
   ensurePreviewStructure();
+  updateResizeLabels();
+  updateFormatLabels();
   if (resizeChoices) resizeChoices.hidden = false;
   if (previews.webp && formatPanel) {
     formatPanel.hidden = false;
