@@ -38,6 +38,12 @@
   row-gap: var(--gap-l);
 }
 
+@media (width >= 48rem) {
+  body:has(.has-result) .main {
+    padding-top: 0;
+  }
+}
+
 /* Uploader  */
 
 .field-group {
@@ -62,6 +68,23 @@
   & > * {
     grid-row: 1;
     grid-column: 1;
+  }
+
+  &.has-result {
+    @media (width >= 48rem) {
+      position: absolute;
+      scale: 0.3;
+      translate: -32% -56%;
+
+      & .dropzone,
+      & label {
+        scale: 1.4;
+      }
+
+      & .help {
+        display: none;
+      }
+    }
   }
 }
 
