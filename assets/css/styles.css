@@ -89,6 +89,7 @@ h1 {
   justify-content: center;
   align-self: start;
   gap: var(--gap-s);
+  cursor: pointer;
 }
 
 .dropzone.is-drag {
@@ -124,7 +125,7 @@ h1 {
 .dropzone .primary-label:focus-visible {
   background: transparent; /* aucune coloration sur le label complet */
 }
-.dropzone .primary-label:hover .primary-icon,
+.dropzone:hover .primary-icon,
 .dropzone .primary-label:focus-visible .primary-icon {
   background: var(--accent-invert);
   color: var(--on-primary);
@@ -141,13 +142,10 @@ h1 {
 
 .dropzone .help {
   text-align: center;
-  color: var(--on-surface-secondary);
+  color: var(--on-surface);
   margin-top: 0.25rem;
 }
-.help .help-sub {
-  display: inline-block;
-  margin-left: 0.35rem;
-}
+
 .help .file-types {
   display: block;
   margin-top: 0.6rem;
