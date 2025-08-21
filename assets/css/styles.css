@@ -165,6 +165,23 @@
 .resize-panel {
   position: relative;
   align-self: start;
+  background-color: transparent;
+  padding-inline: 0;
+  font-size: var(--text-16);
+
+  & legend {
+    font-size: var(--text-16);
+  }
+}
+
+.format-panel {
+  background-color: transparent;
+  padding-inline: 0;
+  font-size: var(--text-16);
+
+  & legend {
+    font-size: var(--text-16);
+  }
 }
 
 .inline-fields {
@@ -316,6 +333,14 @@ details {
   & summary,
   & .details-content {
     background-color: transparent;
+  }
+}
+.advanced-panels details {
+  border-color: var(--primary);
+
+  & .resize-panel,
+  & .format-panel {
+    border-color: var(--details-border-color);
   }
 }
 
