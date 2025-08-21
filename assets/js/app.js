@@ -8,15 +8,17 @@
 const fileInput = document.getElementById("fileInput");
 const dropHint = document.getElementById("dropHint");
 const dropZone = document.getElementById("dropZone");
+const dropSection = document.querySelector(".drop-section");
 // Qualité fixe (75%)
 const FIXED_QUALITY = 0.75;
 const resizeRadios = document.querySelectorAll('input[name="resize"]');
 const statusEl = document.getElementById("status");
 const resultsSection = document.querySelector(".results");
+const compressResults = document.querySelector(".compress-results");
 const compare = document.getElementById("compare");
 const compareInner = document.getElementById("compareInner");
-// Aperçu : seule l'image compressée est visible par défaut; l'original apparaît en survol maintenu
-let procPreview, procDim, procSize, procGain, origOverlay;
+// Aperçu : image compressée + original superposés
+let procPreview, origPreview, procDim, procSize, procGain; // origPreview ajouté pour swap
 const downloadGroup = document.getElementById("downloadGroup");
 // Tableau de téléchargement
 const downloadTable = document.getElementById("downloadTable");
@@ -206,6 +208,8 @@ resizeRadios.forEach((r) =>
 
 async function handleFile(file) {
   announceStatus("Lecture du fichier…", true);
+  // Nouveau fichier : on retire l'état résultat précédent
+  dropSection?.classList.remove("has-result");
   const arrayBuffer = await file.arrayBuffer();
   const blob = new Blob([arrayBuffer], { type: file.type });
   const url = URL.createObjectURL(blob);
@@ -221,14 +225,10 @@ async function handleFile(file) {
     };
     updateResizeLabels();
     updateFormatLabels();
-    // Masquer les panneaux dépendants du résultat jusqu'à la fin de la compression
-    if (resizeChoices) resizeChoices.hidden = true;
+    // Masquer contenu compression regroupé
+    if (compressResults) compressResults.hidden = true;
     ensurePreviewStructure();
     // Aperçu original supprimé : seules dimensions conservées ailleurs (bilan / labels)
-    if (resultsSection.hasAttribute("hidden")) {
-      resultsSection.hidden = false;
-      resultsSection.dataset.state = "loaded";
-    }
     compare.hidden = false;
     focusResultsHeading();
     announceStatus("Image chargée, compression…", true);
@@ -289,16 +289,12 @@ function buildResults(data) {
   const { previews, meta } = data;
   currentPreviews = previews;
   currentMeta = meta;
+  // Ajoute la classe signalant qu'un résultat est disponible
+  dropSection?.classList.add("has-result");
   ensurePreviewStructure();
   updateResizeLabels();
   updateFormatLabels();
-  if (origOverlay && originalImage?.url && !origOverlay.src) {
-    origOverlay.src = originalImage.url;
-  }
-  if (bilanPlaceholder) bilanPlaceholder.hidden = false;
-  if (resizeChoices) resizeChoices.hidden = false;
   if (previews.webp && formatPanel) {
-    formatPanel.hidden = false;
     if (!formatRadios) {
       formatRadios = formatPanel.querySelectorAll('input[name="format"]');
       formatRadios.forEach((r) => {
@@ -318,6 +314,10 @@ function buildResults(data) {
     }
   }
   procPreview.src = previews.processed.url;
+  // Pré-charge l'original pour swap rapide
+  if (origPreview && originalImage?.url) {
+    origPreview.src = originalImage.url;
+  }
   procDim.textContent = `${meta.processed.width}×${meta.processed.height} pixels`;
   // Plus d'affichage direct de l'original dans la zone visuelle de comparaison
   if (downloadTbody) downloadTbody.innerHTML = "";
@@ -368,6 +368,7 @@ function buildResults(data) {
   if (downloadTbody) rows.forEach((tr) => downloadTbody.appendChild(tr));
   updateDisplayedFormat();
   downloadGroup.hidden = false;
+  if (compressResults) compressResults.hidden = false;
   announceStatus("Compression effectuée", false, true);
   updateBilan();
 }
@@ -552,42 +553,40 @@ function ensurePreviewStructure() {
   const figProcessed = document.createElement("figure");
   figProcessed.className = "figure figure-processed";
   figProcessed.innerHTML = `<figcaption>Image optimisée (<span class=\"proc-dim\"></span>, <span class=\"proc-size\"></span>, <span class=\"proc-gain gain\"></span>) <span class=\"inline-download-wrapper\"></span>
-  <small class=\"preview-hint\" aria-live=\"polite\">(clic maintenu pour voir l'image originale)</small>
-  </figcaption>
-  <div class=\"preview-stack\"><img class=\"proc-preview\" alt=\"Aperçu image compressée\" /><img class=\"orig-overlay\" alt=\"Aperçu image originale\" aria-hidden=\"true\" /></div>`;
+    <small class=\"preview-hint\" aria-live=\"polite\">(clic maintenu pour voir l'image originale)</small>
+    </figcaption>
+    <div class=\"preview-stack\">
+      <img class=\"proc-preview\" alt=\"Aperçu image compressée\" />
+      <img class=\"orig-preview\" alt=\"Aperçu image originale\" aria-hidden=\"true\" />
+    </div>`;
   compareInner.appendChild(figProcessed);
   procPreview = figProcessed.querySelector(".proc-preview");
-  origOverlay = figProcessed.querySelector(".orig-overlay");
+  origPreview = figProcessed.querySelector(".orig-preview"); // assignation ajoutée
   procDim = figProcessed.querySelector(".proc-dim");
   procSize = figProcessed.querySelector(".proc-size");
   procGain = figProcessed.querySelector(".proc-gain");
   compareInner.dataset.built = "true";
   compareInner.style.display = "";
-
-  // Gestion maintien clic / touche pour afficher l'original
+  // Interaction maintien pour swap
   const hintEl = figProcessed.querySelector(".preview-hint");
   const showOriginal = () => {
-    if (!origOverlay || !originalImage) return;
-    if (!origOverlay.src && originalImage.url)
-      origOverlay.src = originalImage.url;
-    origOverlay.classList.add("is-visible");
+    if (!origPreview || !originalImage) return;
+    if (!origPreview.src && originalImage.url)
+      origPreview.src = originalImage.url;
     figProcessed.classList.add("showing-original");
     if (hintEl)
-      hintEl.textContent = "(relâcher le clic pour voir l'image optimisée)";
+      hintEl.textContent = "(relâcher pour revenir à la version optimisée)";
   };
   const hideOriginal = () => {
-    origOverlay?.classList.remove("is-visible");
     figProcessed.classList.remove("showing-original");
     if (hintEl)
       hintEl.textContent = "(clic maintenu pour voir l'image originale)";
   };
   figProcessed.addEventListener("pointerdown", (e) => {
-    if (e.button !== 0) return; // uniquement clic principal
-    showOriginal();
+    if (e.button === 0) showOriginal();
   });
   window.addEventListener("pointerup", hideOriginal);
   figProcessed.addEventListener("pointerleave", hideOriginal);
-  // Accessibilité clavier (Espace / Entrée)
   figProcessed.tabIndex = 0;
   figProcessed.addEventListener("keydown", (e) => {
     if (e.code === "Space" || e.code === "Enter") {
@@ -596,8 +595,8 @@ function ensurePreviewStructure() {
     }
   });
   figProcessed.addEventListener("keyup", (e) => {
-    if (e.code === "Space" || e.code === "Enter") {
-      hideOriginal();
-    }
+    if (e.code === "Space" || e.code === "Enter") hideOriginal();
   });
+
+  // Overlay original supprimé : aucune interaction spéciale
 }

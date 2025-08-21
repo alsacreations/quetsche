@@ -108,7 +108,7 @@ figcaption {
 
 /* Guillemets français */
 q {
-  quotes: "«\00A0" "\00A0»";
+  quotes: "«\00A0""\00A0»";
 }
 
 /* ==========================================
@@ -291,6 +291,12 @@ svg:has(symbol) {
 [aria-hidden="false"][hidden]:not(:focus) {
   position: absolute;
   clip: rect(0, 0, 0, 0);
+}
+
+/* Masquage par défaut des éléments avec l'attribut hidden (régression corrigée)
+   Note : la règle ci-dessus garde visibles ceux explicitement aria-hidden="false" */
+[hidden] {
+  display: none !important;
 }
 
 /* ==========================================

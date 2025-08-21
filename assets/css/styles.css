@@ -8,33 +8,10 @@
 @font-face {
   font-family: poppins;
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 100 900; /* plage variable */
   font-display: swap;
-  /* stylelint-disable */
-  src: url("../assets/fonts/Poppins-Variable-opti.woff2") format("woff2")
-      tech("variations"),
-    url("../assets/fonts/Poppins-Variable-opti.woff2")
-      format("woff2-variations");
-  /* stylelint-enable */
-}
-
-/* Page */
-body {
-  grid-template-rows: auto 1fr;
-  padding-top: var(--spacing-l);
-  background: linear-gradient(145deg, var(--layer-1), var(--layer-3));
-  color: var(--on-surface);
-  font-family: var(--font-base);
-  font-size: var(--text-m);
-}
-
-[hidden] {
-  /* fallback global */
-  display: none !important;
-}
-
-fieldset {
-  padding: 0;
+  /* stylelint-disable-next-line */
+  src: url("../fonts/Poppins-Variable-opti.woff2") format("woff2");
 }
 
 .header {
@@ -278,27 +255,22 @@ th {
     max-width: 100%;
     height: auto;
   }
-  & .orig-overlay {
+  & .orig-preview {
     position: absolute;
     inset: 0;
     opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--transition-duration);
-    outline: 0;
-  }
-  & .orig-overlay.is-visible {
-    opacity: 1;
+    transition: opacity var(--transition-duration) ease;
   }
 }
-.figure-processed {
-  &.showing-original .proc-preview {
-    opacity: 0;
-    transition: opacity var(--transition-duration);
-  }
-  & .proc-preview {
-    transition: opacity var(--transition-duration);
-  }
+/* état swap : figure-processed contrôle visibilité */
+.figure-processed.showing-original .orig-preview {
+  opacity: 1;
 }
+.figure-processed.showing-original .proc-preview {
+  opacity: 0;
+  transition: opacity var(--transition-duration) ease;
+}
+/* plus de modification sur .proc-preview : on garde l'image compressée pleinement visible */
 
 .preview-hint {
   display: block;

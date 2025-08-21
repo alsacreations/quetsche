@@ -31,7 +31,7 @@
       <section class="uploader" aria-labelledby="uploader-title">
         <h2 id="uploader-title" class="visually-hidden">Envoyer une image</h2>
 
-        <section class="drop-section">
+        <div class="drop-section">
           <!-- Quetsche SVG -->
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -94,130 +94,141 @@
               >
             </p>
           </div>
-        </section>
-
-        <!-- Advanced options -->
-        <div class="advanced-panels" data-layout="stack" data-gap="s">
-          <div class="field-group resize-panel" id="resizeChoices" hidden>
-            <fieldset
-              class="inline-fields"
-              data-layout="stack"
-              role="radiogroup"
-              aria-labelledby="resizeTitle"
-            >
-              <legend id="resizeTitle" class="panel-title">
-                Redimensionnement
-              </legend>
-              <div data-layout="cluster" data-gap="s">
-                <input
-                  type="radio"
-                  name="resize"
-                  id="size-original"
-                  value="original"
-                />
-                <label for="size-original"
-                  >Dimensions d'origine
-                  <span class="resize-info" data-role="original-dim"></span
-                ></label>
-              </div>
-              <div data-layout="cluster" data-gap="s">
-                <input
-                  type="radio"
-                  name="resize"
-                  id="size-web"
-                  value="1200"
-                  checked
-                />
-                <label for="size-web">
-                  Dimensions optimisées Web
-                  <span class="resize-info" data-role="web-dim"></span>
-                  <small>(conseillé)</small>
-                </label>
-              </div>
-            </fieldset>
-          </div>
-
-          <div class="field-group format-panel" id="formatPanel" hidden>
-            <fieldset
-              class="inline-fields"
-              data-layout="stack"
-              role="radiogroup"
-              aria-labelledby="formatTitle"
-            >
-              <legend id="formatTitle" class="panel-title">
-                Format de fichier
-              </legend>
-              <div data-layout="cluster" data-gap="s">
-                <input
-                  type="radio"
-                  name="format"
-                  id="format-processed"
-                  value="processed"
-                  checked
-                />
-                <label for="format-processed"
-                  >Format d'origine
-                  <span class="format-info" data-role="format-original"></span
-                ></label>
-              </div>
-              <div data-layout="cluster" data-gap="s">
-                <input
-                  type="radio"
-                  name="format"
-                  id="format-webp"
-                  value="webp"
-                />
-                <label for="format-webp"
-                  >Format WebP <small>(conseillé)</small></label
-                >
-              </div>
-            </fieldset>
-          </div>
-        </div>
-
-        <!-- Bilan -->
-        <div
-          class="field-group bilan-panel"
-          id="bilanPlaceholder"
-          role="group"
-          aria-labelledby="bilanTitle"
-          hidden
-        >
-          <h3 id="bilanTitle">Bilan</h3>
-          <div id="bilanContent" data-state="empty">
-            <p class="bilan-placeholder">
-              Le bilan de la compression (poids, économies en CO₂) apparaitra
-              ici.
-            </p>
-          </div>
         </div>
       </section>
 
+      <!-- Résultats affichés après compression -->
       <section
-        class="results"
-        aria-labelledby="results-title"
+        class="compress-results"
+        data-layout="duo"
+        data-model="1-2"
         hidden
-        data-state="idle"
       >
-        <h2 id="results-title" class="visually-hidden">Résultats</h2>
-        <div id="status" role="status" aria-live="polite" class="status"></div>
-        <div class="compare" id="compare" hidden>
+        <div class="compress-results-inner">
+          <!-- Bilan -->
           <div
-            class="compare-inner"
-            id="compareInner"
-            data-built="false"
-            data-layout="switcher"
-            style="--col-min-size: 18rem"
+            class="field-group bilan-panel"
+            id="bilanPlaceholder"
+            role="group"
+            aria-labelledby="bilanTitle"
+          >
+            <h3 id="bilanTitle">Bilan</h3>
+            <div id="bilanContent" data-state="empty">
+              <p class="bilan-placeholder">
+                Le bilan de la compression (poids, économies en CO₂) apparaitra
+                ici.
+              </p>
+            </div>
+          </div>
+
+          <!-- Advanced options -->
+          <div class="advanced-panels" data-layout="stack" data-gap="s">
+            <div class="field-group resize-panel" id="resizeChoices">
+              <fieldset
+                class="inline-fields"
+                data-layout="stack"
+                role="radiogroup"
+                aria-labelledby="resizeTitle"
+              >
+                <legend id="resizeTitle" class="panel-title">
+                  Redimensionnement
+                </legend>
+                <div data-layout="cluster" data-gap="s">
+                  <input
+                    type="radio"
+                    name="resize"
+                    id="size-original"
+                    value="original"
+                  />
+                  <label for="size-original"
+                    >Dimensions d'origine <br />
+                    <span class="resize-info" data-role="original-dim"></span
+                  ></label>
+                </div>
+                <div data-layout="cluster" data-gap="s">
+                  <input
+                    type="radio"
+                    name="resize"
+                    id="size-web"
+                    value="1200"
+                    checked
+                  />
+                  <label for="size-web">
+                    Dimensions optimisées Web <br />
+                    <span class="resize-info" data-role="web-dim"></span>
+                    <small>(conseillé)</small>
+                  </label>
+                </div>
+              </fieldset>
+            </div>
+
+            <div class="field-group format-panel" id="formatPanel">
+              <fieldset
+                class="inline-fields"
+                data-layout="stack"
+                role="radiogroup"
+                aria-labelledby="formatTitle"
+              >
+                <legend id="formatTitle" class="panel-title">
+                  Format de fichier
+                </legend>
+                <div data-layout="cluster" data-gap="s">
+                  <input
+                    type="radio"
+                    name="format"
+                    id="format-processed"
+                    value="processed"
+                    checked
+                  />
+                  <label for="format-processed"
+                    >Format d'origine
+                    <span class="format-info" data-role="format-original"></span
+                  ></label>
+                </div>
+                <div data-layout="cluster" data-gap="s">
+                  <input
+                    type="radio"
+                    name="format"
+                    id="format-webp"
+                    value="webp"
+                  />
+                  <label for="format-webp"
+                    >Format WebP <small>(conseillé)</small></label
+                  >
+                </div>
+              </fieldset>
+            </div>
+          </div>
+        </div>
+
+        <!-- Résultats -->
+        <div class="results" aria-labelledby="results-title" data-state="idle">
+          <h2 id="results-title" class="visually-hidden">Résultats</h2>
+          <div
+            id="status"
+            role="status"
+            aria-live="polite"
+            class="status"
           ></div>
-          <section
-            class="download-group"
-            id="downloadGroup"
-            hidden
-            aria-labelledby="downloads-title"
-          ></section>
+          <div class="compare" id="compare" hidden>
+            <div
+              class="compare-inner"
+              id="compareInner"
+              data-built="false"
+              data-layout="switcher"
+              style="--col-min-size: 18rem"
+            ></div>
+            <section
+              class="download-group"
+              id="downloadGroup"
+              hidden
+              aria-labelledby="downloads-title"
+            ></section>
+          </div>
         </div>
       </section>
 
+      <!-- FAQ -->
       <section
         class="faq"
         data-layout="switcher"
