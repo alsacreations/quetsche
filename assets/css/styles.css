@@ -344,6 +344,44 @@ th {
 .results[hidden] {
   display: none !important;
 }
+
+.preview-stack {
+  position: relative;
+  display: inline-block;
+  cursor: crosshair;
+}
+.preview-stack img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+.orig-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-duration);
+  outline: 0;
+}
+.orig-overlay.is-visible {
+  opacity: 1;
+}
+.figure-processed.showing-original #procPreview {
+  opacity: 0;
+  transition: opacity var(--transition-duration);
+}
+.figure-processed #procPreview {
+  transition: opacity var(--transition-duration);
+}
+
+.preview-hint {
+  display: block;
+  margin-block: var(--spacing-4);
+}
+.inline-download-wrapper {
+  display: inline-block;
+  margin-inline: var(--spacing-4);
+}
 .compare {
   display: grid;
   gap: var(--gap-m);

@@ -15,7 +15,8 @@ const statusEl = document.getElementById("status");
 const resultsSection = document.querySelector(".results");
 const compare = document.getElementById("compare");
 const compareInner = document.getElementById("compareInner");
-let origPreview, procPreview, origDim, origSize, procDim, procSize, procGain;
+// Aperçu : seule l'image compressée est visible par défaut; l'original apparaît en survol maintenu
+let procPreview, procDim, procSize, procGain, origOverlay;
 const downloadGroup = document.getElementById("downloadGroup");
 // Tableau de téléchargement
 const downloadTable = document.getElementById("downloadTable");
@@ -216,15 +217,14 @@ async function handleFile(file) {
       width: img.naturalWidth,
       height: img.naturalHeight,
       fileName: file.name,
+      url,
     };
     updateResizeLabels();
     updateFormatLabels();
     // Masquer les panneaux dépendants du résultat jusqu'à la fin de la compression
     if (resizeChoices) resizeChoices.hidden = true;
     ensurePreviewStructure();
-    origPreview.src = url;
-    origDim.textContent = img.naturalWidth + "×" + img.naturalHeight;
-    origSize.textContent = formatBytes(file.size);
+    // Aperçu original supprimé : seules dimensions conservées ailleurs (bilan / labels)
     if (resultsSection.hasAttribute("hidden")) {
       resultsSection.hidden = false;
       resultsSection.dataset.state = "loaded";
@@ -292,6 +292,10 @@ function buildResults(data) {
   ensurePreviewStructure();
   updateResizeLabels();
   updateFormatLabels();
+  if (origOverlay && originalImage?.url && !origOverlay.src) {
+    origOverlay.src = originalImage.url;
+  }
+  if (bilanPlaceholder) bilanPlaceholder.hidden = false;
   if (resizeChoices) resizeChoices.hidden = false;
   if (previews.webp && formatPanel) {
     formatPanel.hidden = false;
@@ -315,7 +319,7 @@ function buildResults(data) {
   }
   procPreview.src = previews.processed.url;
   procDim.textContent = `${meta.processed.width}×${meta.processed.height} pixels`;
-  origDim.textContent = `${meta.original.width}×${meta.original.height} pixels`;
+  // Plus d'affichage direct de l'original dans la zone visuelle de comparaison
   if (downloadTbody) downloadTbody.innerHTML = "";
   const rows = [];
   rows.push(
@@ -489,8 +493,9 @@ function makeDownloadRow(data) {
 function injectInlineDownload(blob, fileName) {
   const fig = document.querySelector(".figure-processed figcaption");
   if (!fig) return;
-  let existing = fig.querySelector(".inline-download");
-  if (existing) existing.remove();
+  const wrapper = fig.querySelector(".inline-download-wrapper");
+  if (!wrapper) return;
+  wrapper.innerHTML = "";
   const link = document.createElement("a");
   link.className = "inline-download";
   link.href = URL.createObjectURL(blob);
@@ -500,9 +505,7 @@ function injectInlineDownload(blob, fileName) {
     "aria-label",
     "Télécharger la version compressée " + fileName
   );
-  link.style.marginLeft = "0.5rem";
-  fig.appendChild(document.createTextNode(" "));
-  fig.appendChild(link);
+  wrapper.appendChild(link);
 }
 
 function deriveFileName(origName, mimeType) {
@@ -546,21 +549,55 @@ function focusResultsHeading() {
 function ensurePreviewStructure() {
   if (compareInner.dataset.built === "true") return;
   compareInner.innerHTML = "";
-  const figOriginal = document.createElement("figure");
-  figOriginal.className = "figure figure-original";
-  figOriginal.innerHTML = `<figcaption>Original (<span id="origDim"></span>, <span id="origSize"></span>)</figcaption><img id="origPreview" alt="Aperçu image originale" />`;
   const figProcessed = document.createElement("figure");
   figProcessed.className = "figure figure-processed";
-  figProcessed.innerHTML = `<figcaption>Compressé (<span id="procDim"></span>, <span id="procSize"></span>, <span id="procGain" class="gain"></span>)</figcaption><img id="procPreview" alt="Aperçu image compressée" />`;
-  compareInner.appendChild(figOriginal);
+  figProcessed.innerHTML = `<figcaption>Image optimisée (<span id=\"procDim\"></span>, <span id=\"procSize\"></span>, <span id=\"procGain\" class=\"gain\"></span>) <span class=\"inline-download-wrapper\"></span>
+  <small class=\"preview-hint\" aria-live=\"polite\">(clic maintenu pour voir l'image originale)</small>
+  </figcaption>
+  <div class=\"preview-stack\"><img id=\"procPreview\" alt=\"Aperçu image compressée\" /><img id=\"origOverlay\" class=\"orig-overlay\" alt=\"Aperçu image originale\" aria-hidden=\"true\" /></div>`;
   compareInner.appendChild(figProcessed);
-  origPreview = document.getElementById("origPreview");
   procPreview = document.getElementById("procPreview");
-  origDim = document.getElementById("origDim");
-  origSize = document.getElementById("origSize");
+  origOverlay = document.getElementById("origOverlay");
   procDim = document.getElementById("procDim");
   procSize = document.getElementById("procSize");
   procGain = document.getElementById("procGain");
   compareInner.dataset.built = "true";
   compareInner.style.display = "";
+
+  // Gestion maintien clic / touche pour afficher l'original
+  const hintEl = figProcessed.querySelector(".preview-hint");
+  const showOriginal = () => {
+    if (!origOverlay || !originalImage) return;
+    if (!origOverlay.src && originalImage.url)
+      origOverlay.src = originalImage.url;
+    origOverlay.classList.add("is-visible");
+    figProcessed.classList.add("showing-original");
+    if (hintEl)
+      hintEl.textContent = "(relâcher le clic pour voir l'image optimisée)";
+  };
+  const hideOriginal = () => {
+    origOverlay?.classList.remove("is-visible");
+    figProcessed.classList.remove("showing-original");
+    if (hintEl)
+      hintEl.textContent = "(clic maintenu pour voir l'image originale)";
+  };
+  figProcessed.addEventListener("pointerdown", (e) => {
+    if (e.button !== 0) return; // uniquement clic principal
+    showOriginal();
+  });
+  window.addEventListener("pointerup", hideOriginal);
+  figProcessed.addEventListener("pointerleave", hideOriginal);
+  // Accessibilité clavier (Espace / Entrée)
+  figProcessed.tabIndex = 0;
+  figProcessed.addEventListener("keydown", (e) => {
+    if (e.code === "Space" || e.code === "Enter") {
+      e.preventDefault();
+      showOriginal();
+    }
+  });
+  figProcessed.addEventListener("keyup", (e) => {
+    if (e.code === "Space" || e.code === "Enter") {
+      hideOriginal();
+    }
+  });
 }
