@@ -193,21 +193,22 @@
               </p>
               <p>
                 La compression se fait nativement dans le navigateur, sans
-                dépendance à un service externe. La qualité est fixée à `0.75`
-                et une version en format WebP est également générée.
+                dépendance à un service externe.
               </p>
               <p>
                 Des préréglages permettent d'optimiser le poids final&#8239;:
               </p>
               <ul>
-                <li>Original (aucun redimensionnement)</li>
-                <li>Web 1200 (plus grand côté ramené à 1200px)</li>
-                <li>Email 800 (plus grand côté ramené à 800px)</li>
+                <li>Taille originelle (aucun redimensionnement)</li>
+                <li>
+                  Taille "optimisée Web" (plus grand côté ramené à 1200px)
+                </li>
               </ul>
-              <p>
-                Dans tous les cas, le ratio est préservé : seul le plus grand
-                côté est contraint.
-              </p>
+
+              <ul>
+                <li>Original compressé (le format d'origine est conservé)</li>
+                <li>Webp (fichier WebP de qualité 75 généré)</li>
+              </ul>
             </div>
           </details>
           <details>
