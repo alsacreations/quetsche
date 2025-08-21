@@ -64,80 +64,85 @@
               </p>
             </div>
 
-            <div class="field-group resize-panel" id="resizeChoices" hidden>
-              <fieldset
-                class="inline-fields"
-                data-layout="stack"
-                role="radiogroup"
-                aria-labelledby="resizeTitle"
-              >
-                <legend id="resizeTitle" class="panel-title">
-                  Redimensionnement
-                </legend>
-                <div data-layout="cluster" data-gap="s">
-                  <input
-                    type="radio"
-                    name="resize"
-                    id="size-original"
-                    value="original"
-                  />
-                  <label for="size-original"
-                    >Dimensions d'origine
-                    <span class="resize-info" data-role="original-dim"></span
-                  ></label>
-                </div>
-                <div data-layout="cluster" data-gap="s">
-                  <input
-                    type="radio"
-                    name="resize"
-                    id="size-web"
-                    value="1200"
-                    checked
-                  />
-                  <label for="size-web">
-                    Dimensions optimisées Web
-                    <span class="resize-info" data-role="web-dim"></span>
-                    <small>(conseillé)</small>
-                  </label>
-                </div>
-              </fieldset>
-            </div>
+            <div class="advanced-panels" data-layout="stack" data-gap="s">
+              <div class="field-group resize-panel" id="resizeChoices" hidden>
+                <fieldset
+                  class="inline-fields"
+                  data-layout="stack"
+                  role="radiogroup"
+                  aria-labelledby="resizeTitle"
+                >
+                  <legend id="resizeTitle" class="panel-title">
+                    Redimensionnement
+                  </legend>
+                  <div data-layout="cluster" data-gap="s">
+                    <input
+                      type="radio"
+                      name="resize"
+                      id="size-original"
+                      value="original"
+                    />
+                    <label for="size-original"
+                      >Dimensions d'origine
+                      <span class="resize-info" data-role="original-dim"></span
+                    ></label>
+                  </div>
+                  <div data-layout="cluster" data-gap="s">
+                    <input
+                      type="radio"
+                      name="resize"
+                      id="size-web"
+                      value="1200"
+                      checked
+                    />
+                    <label for="size-web">
+                      Dimensions optimisées Web
+                      <span class="resize-info" data-role="web-dim"></span>
+                      <small>(conseillé)</small>
+                    </label>
+                  </div>
+                </fieldset>
+              </div>
 
-            <div class="field-group format-panel" id="formatPanel" hidden>
-              <fieldset
-                class="inline-fields"
-                data-layout="stack"
-                role="radiogroup"
-                aria-labelledby="formatTitle"
-              >
-                <legend id="formatTitle" class="panel-title">
-                  Format de fichier
-                </legend>
-                <div data-layout="cluster" data-gap="s">
-                  <input
-                    type="radio"
-                    name="format"
-                    id="format-processed"
-                    value="processed"
-                    checked
-                  />
-                  <label for="format-processed"
-                    >Format d'origine
-                    <span class="format-info" data-role="format-original"></span
-                  ></label>
-                </div>
-                <div data-layout="cluster" data-gap="s">
-                  <input
-                    type="radio"
-                    name="format"
-                    id="format-webp"
-                    value="webp"
-                  />
-                  <label for="format-webp"
-                    >Format WebP <small>(conseillé)</small></label
-                  >
-                </div>
-              </fieldset>
+              <div class="field-group format-panel" id="formatPanel" hidden>
+                <fieldset
+                  class="inline-fields"
+                  data-layout="stack"
+                  role="radiogroup"
+                  aria-labelledby="formatTitle"
+                >
+                  <legend id="formatTitle" class="panel-title">
+                    Format de fichier
+                  </legend>
+                  <div data-layout="cluster" data-gap="s">
+                    <input
+                      type="radio"
+                      name="format"
+                      id="format-processed"
+                      value="processed"
+                      checked
+                    />
+                    <label for="format-processed"
+                      >Format d'origine
+                      <span
+                        class="format-info"
+                        data-role="format-original"
+                      ></span
+                    ></label>
+                  </div>
+                  <div data-layout="cluster" data-gap="s">
+                    <input
+                      type="radio"
+                      name="format"
+                      id="format-webp"
+                      value="webp"
+                    />
+                    <label for="format-webp"
+                      >Format WebP <small>(conseillé)</small></label
+                    >
+                  </div>
+                </fieldset>
+              </div>
             </div>
           </div>
 
