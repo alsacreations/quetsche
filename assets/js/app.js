@@ -20,15 +20,9 @@ const downloadGroup = document.getElementById("downloadGroup");
 // Tableau de téléchargement
 const downloadTable = document.getElementById("downloadTable");
 let downloadTbody = downloadTable ? downloadTable.querySelector("tbody") : null;
-const metrics = document.getElementById("metrics");
 const resizeChoices = document.getElementById("resizeChoices");
 const bilanPlaceholder = document.getElementById("bilanPlaceholder");
-const metricOrigSize = document.getElementById("metricOrigSize");
-const metricBestSize = document.getElementById("metricBestSize");
-const metricBestFormat = document.getElementById("metricBestFormat");
-const metricBestPct = document.getElementById("metricBestPct");
-const metricBytesSaved = document.getElementById("metricBytesSaved");
-const metricCo2Saved = document.getElementById("metricCo2Saved");
+const bilanContent = document.getElementById("bilanContent");
 // Panel format
 const formatPanel = document.getElementById("formatPanel");
 let formatRadios = null;
@@ -36,19 +30,23 @@ let formatRadios = null;
 const sampleContainer = document.getElementById("sampleSuggestion");
 
 let originalImage = null; // { blob, width, height, fileName, size }
+// État courant des derniers résultats de compression (pour mise à jour dynamique)
+let currentPreviews = null; // { processed:{blob,url}, webp?:{blob,url} }
+let currentMeta = null; // { original:{size,width,height,mime}, processed:{size,width,height,mime}, fileName }
 let worker = null;
 initWorker();
 
 // Active le chargement de l'image d'exemple
 if (sampleContainer) {
   sampleContainer.addEventListener("click", (e) => {
-    const target = e.target;
-    if (target instanceof HTMLElement && target.matches(".sample-load")) {
-      const fullSrc = target.getAttribute("data-full-src");
-      const fname = target.getAttribute("data-file-name") || "sample.jpg";
-      if (fullSrc) {
-        loadSample(fullSrc, fname);
-      }
+    const raw = e.target;
+    if (!(raw instanceof HTMLElement)) return;
+    const trigger = raw.closest(".sample-load");
+    if (trigger) {
+      e.preventDefault();
+      const fullSrc = trigger.getAttribute("data-full-src");
+      const fname = trigger.getAttribute("data-file-name") || "sample.jpg";
+      if (fullSrc) loadSample(fullSrc, fname);
     }
   });
 }
@@ -233,46 +231,35 @@ async function process() {
 
 function buildResults(data) {
   const { previews, meta } = data;
+  currentPreviews = previews;
+  currentMeta = meta;
   ensurePreviewStructure();
-  // Afficher les panneaux de réglages et le bilan désormais pertinents
   if (resizeChoices) resizeChoices.hidden = false;
-  // Préparer le panel de format si WebP disponible
   if (previews.webp && formatPanel) {
     formatPanel.hidden = false;
     if (!formatRadios) {
       formatRadios = formatPanel.querySelectorAll('input[name="format"]');
-      formatRadios.forEach((r) =>
-        r.addEventListener("change", () =>
-          updateDisplayedFormat(previews, meta)
-        )
-      );
+      formatRadios.forEach((r) => {
+        r.addEventListener("change", () => {
+          updateDisplayedFormat();
+          updateBilan();
+        });
+      });
+      // Sélection par défaut (processed) si aucune coche (évite chosen null)
+      const anyChecked = Array.from(formatRadios).some((r) => r.checked);
+      if (!anyChecked) {
+        const first = Array.from(formatRadios).find(
+          (r) => r.value === "processed"
+        );
+        if (first) first.checked = true;
+      }
     }
   }
   procPreview.src = previews.processed.url;
-  procDim.textContent =
-    meta.processed.width + "×" + meta.processed.height + " pixels";
-  origDim.textContent =
-    meta.original.width + "×" + meta.original.height + " pixels";
-  procSize.textContent = formatBytes(meta.processed.size);
-  const deltaPct =
-    meta.original.size > 0
-      ? (1 - meta.processed.size / meta.original.size) * 100
-      : 0;
-  const sign = deltaPct >= 0 ? "-" : "+";
-  const absPct = Math.abs(deltaPct).toFixed(1);
-  procGain.textContent = sign + absPct + "%";
-  procGain.classList.remove("gain-positive", "gain-negative");
-  if (deltaPct >= 0) {
-    procGain.classList.add("gain-positive");
-    procGain.setAttribute("aria-label", absPct + "% plus léger");
-  } else {
-    procGain.classList.add("gain-negative");
-    procGain.setAttribute("aria-label", absPct + "% plus lourd");
-  }
-  // Construire le tableau récapitulatif des versions
+  procDim.textContent = `${meta.processed.width}×${meta.processed.height} pixels`;
+  origDim.textContent = `${meta.original.width}×${meta.original.height} pixels`;
   if (downloadTbody) downloadTbody.innerHTML = "";
   const rows = [];
-  // Ligne originale (données issues de meta.original)
   rows.push(
     makeDownloadRow({
       label: "Originale",
@@ -283,7 +270,6 @@ function buildResults(data) {
       optimized: false,
     })
   );
-  // Ligne compressée
   rows.push(
     makeDownloadRow({
       label: "Compressée",
@@ -294,7 +280,6 @@ function buildResults(data) {
       optimized: false,
     })
   );
-  // Ligne WebP éventuelle
   if (previews.webp) {
     rows.push(
       makeDownloadRow({
@@ -307,7 +292,6 @@ function buildResults(data) {
       })
     );
   }
-  // Trouver la plus légère (hors cas taille 0)
   const candidates = rows.filter((r) => r.dataset.size > 0);
   if (candidates.length) {
     const best = candidates.reduce((a, b) =>
@@ -315,91 +299,98 @@ function buildResults(data) {
     );
     best.classList.add("is-best");
     const cell = best.querySelector('[data-col="best"]');
-    if (cell) {
+    if (cell)
       cell.innerHTML =
         '<span class="best-indicator" role="img" aria-label="Version la plus optimisée">✔</span>';
-    }
   }
   if (downloadTbody) rows.forEach((tr) => downloadTbody.appendChild(tr));
-  // Mettre à jour lien Download dans le figcaption compressé
-  injectInlineDownload(
-    previews.processed.blob,
-    deriveFileName(meta.fileName, meta.processed.mime)
-  );
+  updateDisplayedFormat();
   downloadGroup.hidden = false;
   announceStatus("Compression effectuée", false, true);
-  // Détermination de la meilleure version (processed vs webp si présent)
-  let bestSize = meta.processed.size;
-  let bestFormat = meta.processed.mime.includes("webp")
-    ? "WebP"
-    : meta.processed.mime.split("/").pop()?.toUpperCase() || "JPEG";
-  if (previews.webp && previews.webp.blob.size < bestSize) {
-    bestSize = previews.webp.blob.size;
-    bestFormat = "WebP";
-  }
-  const bytesSaved = Math.max(0, meta.original.size - bestSize);
-  const pctSaved =
-    meta.original.size > 0
-      ? ((bytesSaved / meta.original.size) * 100).toFixed(1)
-      : "0";
-  const co2PerMB = 0.5; // g CO2 estimé par Mo transféré
-  const co2Saved = (bytesSaved / (1024 * 1024)) * co2PerMB;
-  metricOrigSize.textContent = formatBytes(meta.original.size);
-  metricBestSize.textContent = formatBytes(bestSize);
-  if (metricBestFormat) metricBestFormat.textContent = bestFormat;
-  if (metricBestPct) metricBestPct.textContent = `-${pctSaved}%`;
-  metricBytesSaved.textContent = formatBytes(bytesSaved);
-  metricCo2Saved.textContent = co2Saved.toFixed(2) + " g";
-  metrics.hidden = false;
-  // Mise à jour affichage initial selon format par défaut (processed)
-  updateDisplayedFormat(previews, meta);
+  updateBilan();
 }
 
-function updateDisplayedFormat(previews, meta) {
+function updateDisplayedFormat() {
+  if (!currentPreviews || !currentMeta) return;
+  const previews = currentPreviews;
+  const meta = currentMeta;
   const chosen = document.querySelector('input[name="format"]:checked');
-  if (!chosen) return;
-  const mode = chosen.value; // 'processed' ou 'webp'
+  const mode = chosen ? chosen.value : "processed";
   const current =
     mode === "webp" && previews.webp ? previews.webp : previews.processed;
-  // Mettre à jour l'image compressée affichée sans recalcul
   if (procPreview && current) {
     procPreview.src = current.url;
     procPreview.alt = `Aperçu image compressée (${
       mode === "webp" ? "WebP" : "original compressé"
     })`;
   }
-  // Mettre à jour taille et gain si changement de format choisi
-  if (mode === "webp" && previews.webp) {
-    procSize.textContent = formatBytes(previews.webp.blob.size);
-    const deltaPct =
-      meta.original.size > 0
-        ? (1 - previews.webp.blob.size / meta.original.size) * 100
-        : 0;
-    const sign = deltaPct >= 0 ? "-" : "+";
-    const absPct = Math.abs(deltaPct).toFixed(1);
-    procGain.textContent = sign + absPct + "%";
+  const blob =
+    mode === "webp" && previews.webp
+      ? previews.webp.blob
+      : previews.processed.blob;
+  procSize.textContent = formatBytes(blob.size);
+  const deltaPct =
+    currentMeta.original.size > 0
+      ? (1 - blob.size / currentMeta.original.size) * 100
+      : 0;
+  const sign = deltaPct >= 0 ? "-" : "+";
+  const absPct = Math.abs(deltaPct).toFixed(1);
+  procGain.textContent = sign + absPct + "%";
+  procGain.classList.remove("gain-positive", "gain-negative");
+  if (deltaPct >= 0) {
+    procGain.classList.add("gain-positive");
+    procGain.setAttribute("aria-label", absPct + "% plus léger");
   } else {
-    procSize.textContent = formatBytes(meta.processed.size);
-    const deltaPct =
-      meta.original.size > 0
-        ? (1 - meta.processed.size / meta.original.size) * 100
-        : 0;
-    const sign = deltaPct >= 0 ? "-" : "+";
-    const absPct = Math.abs(deltaPct).toFixed(1);
-    procGain.textContent = sign + absPct + "%";
+    procGain.classList.add("gain-negative");
+    procGain.setAttribute("aria-label", absPct + "% plus lourd");
   }
-  // Mettre à jour le lien inline download si présent
-  if (mode === "webp" && previews.webp) {
-    injectInlineDownload(
-      previews.webp.blob,
-      deriveFileName(meta.fileName, "image/webp")
-    );
-  } else {
-    injectInlineDownload(
-      previews.processed.blob,
-      deriveFileName(meta.fileName, meta.processed.mime)
-    );
-  }
+  const fileNameForLink =
+    mode === "webp" && previews.webp
+      ? deriveFileName(meta.fileName, "image/webp")
+      : deriveFileName(meta.fileName, meta.processed.mime);
+  injectInlineDownload(blob, fileNameForLink);
+}
+
+function updateBilan() {
+  if (!bilanContent || !currentMeta || !currentPreviews) return;
+  const meta = currentMeta;
+  const previews = currentPreviews;
+  const origBytes = meta.original.size;
+  const chosen = document.querySelector('input[name="format"]:checked');
+  const mode = chosen ? chosen.value : "processed";
+  const chosenBlob =
+    mode === "webp" && previews.webp
+      ? previews.webp.blob
+      : previews.processed.blob;
+  const chosenFormat =
+    mode === "webp" && previews.webp
+      ? "WebP"
+      : meta.processed.mime.split("/").pop()?.toUpperCase() || "";
+  const chosenSizeBytes = chosenBlob.size;
+  const bytesSaved = Math.max(0, origBytes - chosenSizeBytes);
+  const pctSaved =
+    origBytes > 0 ? ((bytesSaved / origBytes) * 100).toFixed(1) : "0";
+  const co2PerMB = 0.5; // g CO₂ / Mo
+  const co2Saved = ((bytesSaved / (1024 * 1024)) * co2PerMB).toFixed(2) + " g";
+  const orig = formatBytes(origBytes);
+  const chosenSize = formatBytes(chosenSizeBytes);
+  const pct = `-${pctSaved}%`;
+  const html = `
+    <ul class="bilan-list" role="list">
+      <li>Poids originel (${meta.original.mime
+        .split("/")
+        .pop()
+        .toUpperCase()}) : <span class="bilan-val">${orig}</span></li>
+      <li>Poids compressé (${chosenFormat}) : <span class="bilan-val">${chosenSize}</span> <span class="bilan-gain">(${pct})</span></li>
+      <li>Octets économisés : <span class="bilan-val">${formatBytes(
+        bytesSaved
+      )}</span></li>
+      <li>Réduction CO₂ estimée : <span class="bilan-val">${co2Saved}</span></li>
+    </ul>
+    <p class="metrics-note bilan-note"><small>Estimation CO₂ (~0,5 g / Mo transféré) source indicative : <a href="https://www.websitecarbon.com/" target="_blank" rel="noopener noreferrer">Website Carbon</a></small></p>
+  `;
+  bilanContent.innerHTML = html;
+  bilanContent.dataset.state = "ready";
 }
 
 function makeDownloadRow(data) {

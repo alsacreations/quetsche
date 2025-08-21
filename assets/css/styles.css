@@ -29,6 +29,9 @@ body {
 [hidden] {
   display: none !important;
 }
+fieldset {
+  padding: 0;
+}
 
 .header,
 .footer {
@@ -63,7 +66,7 @@ h1 {
   display: grid;
   row-gap: var(--gap-s);
   background: var(--layer-1);
-  padding: var(--spacing-m);
+  padding: var(--spacing-s);
   border: 1px solid var(--primary);
   border-radius: var(--radius-lg);
 
@@ -294,6 +297,10 @@ th {
   display: grid;
   row-gap: var(--gap-s);
   border-radius: var(--radius-lg);
+
+  & p {
+    margin: 0;
+  }
 }
 
 .sample-figure {
@@ -307,20 +314,32 @@ th {
   background: var(--layer-1);
 }
 .sample-load {
+  /* Bouton visuel englobant l'image exemple */
   cursor: pointer;
-  padding: var(--spacing-8) var(--spacing-16);
-  font-size: var(--text-m);
+  display: inline-block;
+  padding: 0;
+  border: 0;
+  background: none;
   border-radius: var(--radius-md);
-  background: var(--layer-3);
-  color: var(--on-surface);
-  box-shadow: none;
-  transition: background var(--transition-duration),
-    color var(--transition-duration);
+  line-height: 0; /* supprime l'espace inline */
+  transition: scale var(--transition-duration),
+    box-shadow var(--transition-duration);
 }
-.sample-load:hover,
-.sample-load:focus-visible {
-  background: var(--accent);
-  color: var(--on-primary);
+.sample-load img {
+  display: block;
+  border-radius: inherit;
+  transition: scale var(--transition-duration),
+    box-shadow var(--transition-duration);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sample-load:hover img,
+  .sample-load:focus-visible img {
+    scale: 1.03;
+  }
+}
+.sample-load:hover img,
+.sample-load:focus-visible img {
+  box-shadow: 0 0 0 4px var(--accent), 0 2px 6px rgb(0 0 0 / 0.4);
 }
 
 /* Résultats */
@@ -371,17 +390,18 @@ details {
   align-items: center;
   padding: var(--spacing-4) var(--spacing-12);
   font-size: var(--text-m);
-  background: var(--layer-3);
+  background: var(--accent-invert);
+  color: var(--on-primary);
   border-radius: var(--radius-md);
-  color: var(--on-surface);
   text-decoration: none;
   transition: background var(--transition-duration),
     color var(--transition-duration);
 }
 .inline-download:hover,
 .inline-download:focus-visible {
-  background: var(--accent);
-  color: var(--on-primary);
+  background-color: oklch(
+    from var(--accent-invert, AccentColor) calc(l * 0.9) c h
+  );
 }
 
 /* Metrics */
@@ -394,9 +414,41 @@ details {
   margin: 0;
 }
 .metrics-note {
-  font-size: var(--text-s);
-  margin-top: var(--spacing-m);
-  color: var(--on-surface-secondary);
+  font-size: var(--text-14);
+  margin: 0;
+}
+
+/* Bilan formaté */
+.bilan-panel {
+  background: transparent;
+}
+.bilan-panel .bilan-list {
+  list-style: disc;
+  margin: 0 0 var(--spacing-m) var(--spacing-l);
+  padding: 0;
+  font-size: var(--text-m);
+}
+.bilan-panel .bilan-list li {
+  margin-bottom: var(--spacing-8);
+}
+.bilan-panel .bilan-val {
+  font-weight: var(--font-weight-semibold);
+}
+.bilan-panel .bilan-gain {
+  color: var(--success);
+  font-weight: var(--font-weight-semibold);
+}
+.bilan-panel .bilan-subtitle {
+  margin: var(--spacing-l) 0 var(--spacing-8);
+  font-size: var(--text-l);
+  font-weight: var(--font-weight-semibold);
+}
+.bilan-panel .bilan-note a {
+  text-decoration: underline;
+}
+.bilan-panel .bilan-placeholder {
+  margin: 0;
+  font-size: var(--text-m);
 }
 
 /* Statut (aria-live) */

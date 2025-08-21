@@ -29,45 +29,53 @@
 
     <main class="main" data-layout="boxed" id="main" tabindex="-1">
       <section class="uploader" aria-labelledby="uploader-title">
-        <h2 id="uploader-title" class="visually-hidden">Importer une image</h2>
-        <section class="drop-section" data-layout="duo" data-model="2-1">
-          <div
-            class="field-group dropzone"
-            id="dropZone"
-            role="button"
-            tabindex="0"
-            aria-describedby="dropHint"
-          >
-            <label for="fileInput" class="primary-label">
-              <span class="primary-icon" aria-hidden="true"></span>
-              <span class="primary-text">Télécharger</span>
-            </label>
-            <input
-              id="fileInput"
-              name="file"
-              type="file"
-              accept="image/jpeg,image/png"
-              required
-            />
-            <p class="help" id="dropHint">
-              <strong>Cliquer pour importer une image</strong>
-              <span class="help-sub">ou glisser et déposer.</span>
-              <span class="file-types visually-hidden"
-                >SVG, PNG, JPG ou GIF</span
-              >
-            </p>
-          </div>
+        <h2 id="uploader-title" class="visually-hidden">Envoyer une image</h2>
+        <section
+          class="drop-section"
+          data-layout="duo"
+          data-model="2-1"
+          data-align="start"
+        >
+          <div class="inner" data-layout="stack" data-gap="s">
+            <div
+              class="field-group dropzone"
+              id="dropZone"
+              role="button"
+              tabindex="0"
+              aria-describedby="dropHint"
+            >
+              <label for="fileInput" class="primary-label">
+                <span class="primary-icon" aria-hidden="true"></span>
+                <span class="primary-text">Importer</span>
+              </label>
+              <input
+                id="fileInput"
+                name="file"
+                type="file"
+                accept="image/jpeg,image/png"
+                required
+              />
+              <p class="help" id="dropHint">
+                <strong>Cliquer pour importer une image</strong>
+                <span class="help-sub">ou glisser et déposer.</span>
+                <span class="file-types visually-hidden"
+                  >SVG, PNG, JPG ou GIF</span
+                >
+              </p>
+            </div>
 
-          <div class="inner" data-layout="stack">
             <div class="field-group resize-panel" id="resizeChoices" hidden>
-              <div
+              <fieldset
                 class="inline-fields"
-                data-layout="stack"
+                data-layout="switcher"
                 style="align-items: flex-start"
                 role="radiogroup"
                 aria-labelledby="resizeTitle"
               >
-                <div data-layout="duo" data-model="auto-1" data-gap="s">
+                <legend id="resizeTitle" class="visually-hidden">
+                  Redimensionnement
+                </legend>
+                <div data-layout="cluster" data-gap="s">
                   <input
                     type="radio"
                     name="resize"
@@ -76,7 +84,7 @@
                   />
                   <label for="size-original">Taille d'origine</label>
                 </div>
-                <div data-layout="duo" data-model="auto-1" data-gap="s">
+                <div data-layout="cluster" data-gap="s">
                   <input
                     type="radio"
                     name="resize"
@@ -84,65 +92,61 @@
                     value="1200"
                     checked
                   />
-                  <label for="size-web">Optimisé Web <i>(conseillé)</i></label>
+                  <label for="size-web"
+                    >Optimisé Web <small>(conseillé)</small></label
+                  >
                 </div>
-              </div>
+              </fieldset>
             </div>
 
-            <div
-              class="field-group resize-panel bilan-panel"
-              id="bilanPlaceholder"
-              role="group"
-              aria-labelledby="bilanTitle"
-            >
-              <h3 id="bilanTitle">Bilan</h3>
-              <p>
-                Le bilan apparaitra à cet emplacement, avec la réduction de CO₂
-                estimée.
-              </p>
-              <p class="metrics-note bilan-note">
-                Estimation CO₂ (~0,5 g / Mo transféré) source indicative :
-                <a
-                  href="https://www.websitecarbon.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  >Website Carbon</a
-                >
-              </p>
+            <div class="field-group format-panel" id="formatPanel" hidden>
+              <fieldset
+                class="inline-fields"
+                data-layout="switcher"
+                role="radiogroup"
+                aria-labelledby="formatTitle"
+              >
+                <legend id="formatTitle" class="resize-title visually-hidden">
+                  Format
+                </legend>
+                <div data-layout="cluster" data-gap="s">
+                  <input
+                    type="radio"
+                    name="format"
+                    id="format-processed"
+                    value="processed"
+                    checked
+                  />
+                  <label for="format-processed">Original compressé</label>
+                </div>
+                <div data-layout="cluster" data-gap="s">
+                  <input
+                    type="radio"
+                    name="format"
+                    id="format-webp"
+                    value="webp"
+                  />
+                  <label for="format-webp"
+                    >WebP <small>(conseillé)</small></label
+                  >
+                </div>
+              </fieldset>
             </div>
           </div>
 
           <div
-            class="field-group resize-panel format-panel"
-            id="formatPanel"
-            hidden
+            class="field-group bilan-panel"
+            id="bilanPlaceholder"
+            role="group"
+            aria-labelledby="bilanTitle"
           >
-            <fieldset
-              class="inline-fields"
-              role="radiogroup"
-              aria-labelledby="formatTitle"
-            >
-              <legend id="formatTitle" class="resize-title">Format</legend>
-              <div data-layout="duo" data-model="auto-1" data-gap="s">
-                <input
-                  type="radio"
-                  name="format"
-                  id="format-processed"
-                  value="processed"
-                  checked
-                />
-                <label for="format-processed">Original compressé</label>
-              </div>
-              <div data-layout="duo" data-model="auto-1" data-gap="s">
-                <input
-                  type="radio"
-                  name="format"
-                  id="format-webp"
-                  value="webp"
-                />
-                <label for="format-webp">WebP</label>
-              </div>
-            </fieldset>
+            <h3 id="bilanTitle">Bilan</h3>
+            <div id="bilanContent" data-state="empty">
+              <p class="bilan-placeholder">
+                Le bilan de la compression (poids, économies en CO₂) apparaitra
+                ici.
+              </p>
+            </div>
           </div>
         </section>
       </section>
@@ -168,53 +172,7 @@
             id="downloadGroup"
             hidden
             aria-labelledby="downloads-title"
-          >
-            <h3 id="downloads-title">Téléchargements</h3>
-            <div class="download-wrapper">
-              <table id="downloadTable" class="download-table">
-                <caption class="visually-hidden">
-                  Tableau comparatif des versions téléchargeables (originale,
-                  compressée, WebP) avec indication du poids et de la meilleure
-                  optimisation.
-                </caption>
-                <thead>
-                  <tr>
-                    <th scope="col">Version</th>
-                    <th scope="col">Poids</th>
-                    <th scope="col">Télécharger</th>
-                    <th scope="col">
-                      <span class="visually-hidden">Optimisation</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-            </div>
-          </section>
-          <div class="metrics" id="metrics" hidden>
-            <h3>Bilan</h3>
-            <ul class="metrics-list" role="list">
-              <li>Poids originel : <span id="metricOrigSize"></span></li>
-              <li>
-                Poids compressé (<span id="metricBestFormat"></span>) :
-                <span id="metricBestSize"></span> (<span
-                  id="metricBestPct"
-                ></span
-                >)
-              </li>
-              <li>Octets économisés : <span id="metricBytesSaved"></span></li>
-              <li>Réduction CO₂ estimée : <span id="metricCo2Saved"></span></li>
-            </ul>
-            <p class="metrics-note">
-              Estimation CO₂ (~0,5 g / Mo transféré) source indicative :
-              <a
-                href="https://www.websitecarbon.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                >Website Carbon</a
-              >
-            </p>
-          </div>
+          ></section>
         </div>
       </section>
 
@@ -260,30 +218,29 @@
               class="details-content sample-suggestion"
               id="sampleSuggestion"
             >
+              <p>Testez celle-ci&#8239;:</p>
               <figure class="sample-figure">
-                <picture>
-                  <source
-                    type="image/webp"
-                    srcset="public/samples/questche_400.webp"
-                  />
-                  <img
-                    src="public/samples/questche_400.webp"
-                    width="200"
-                    alt="Exemple de photo Quetsche"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </picture>
-                <figcaption>
-                  <button
-                    type="button"
-                    class="sample-load"
-                    data-full-src="public/samples/questche_1920.jpg"
-                    data-file-name="questche_1920.jpg"
-                  >
-                    Testez cet exemple
-                  </button>
-                </figcaption>
+                <button
+                  type="button"
+                  class="sample-load"
+                  data-full-src="public/samples/questche_1920.jpg"
+                  data-file-name="questche_1920.jpg"
+                  aria-label="Charger l'image d'exemple Quetsche"
+                >
+                  <picture>
+                    <source
+                      type="image/webp"
+                      srcset="public/samples/questche_400.webp"
+                    />
+                    <img
+                      src="public/samples/questche_400.webp"
+                      width="200"
+                      alt="Exemple de photo Quetsche"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </picture>
+                </button>
               </figure>
               <p>
                 <small
