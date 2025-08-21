@@ -551,16 +551,16 @@ function ensurePreviewStructure() {
   compareInner.innerHTML = "";
   const figProcessed = document.createElement("figure");
   figProcessed.className = "figure figure-processed";
-  figProcessed.innerHTML = `<figcaption>Image optimisée (<span id=\"procDim\"></span>, <span id=\"procSize\"></span>, <span id=\"procGain\" class=\"gain\"></span>) <span class=\"inline-download-wrapper\"></span>
+  figProcessed.innerHTML = `<figcaption>Image optimisée (<span class=\"proc-dim\"></span>, <span class=\"proc-size\"></span>, <span class=\"proc-gain gain\"></span>) <span class=\"inline-download-wrapper\"></span>
   <small class=\"preview-hint\" aria-live=\"polite\">(clic maintenu pour voir l'image originale)</small>
   </figcaption>
-  <div class=\"preview-stack\"><img id=\"procPreview\" alt=\"Aperçu image compressée\" /><img id=\"origOverlay\" class=\"orig-overlay\" alt=\"Aperçu image originale\" aria-hidden=\"true\" /></div>`;
+  <div class=\"preview-stack\"><img class=\"proc-preview\" alt=\"Aperçu image compressée\" /><img class=\"orig-overlay\" alt=\"Aperçu image originale\" aria-hidden=\"true\" /></div>`;
   compareInner.appendChild(figProcessed);
-  procPreview = document.getElementById("procPreview");
-  origOverlay = document.getElementById("origOverlay");
-  procDim = document.getElementById("procDim");
-  procSize = document.getElementById("procSize");
-  procGain = document.getElementById("procGain");
+  procPreview = figProcessed.querySelector(".proc-preview");
+  origOverlay = figProcessed.querySelector(".orig-overlay");
+  procDim = figProcessed.querySelector(".proc-dim");
+  procSize = figProcessed.querySelector(".proc-size");
+  procGain = figProcessed.querySelector(".proc-gain");
   compareInner.dataset.built = "true";
   compareInner.style.display = "";
 

@@ -30,133 +30,133 @@
     <main class="main" data-layout="boxed" id="main" tabindex="-1">
       <section class="uploader" aria-labelledby="uploader-title">
         <h2 id="uploader-title" class="visually-hidden">Envoyer une image</h2>
+
         <section class="drop-section">
-          <div class="inner" data-layout="stack" data-gap="s">
-            <div
-              class="field-group dropzone"
-              id="dropZone"
-              role="button"
-              tabindex="0"
-              aria-describedby="dropHint"
-            >
-              <label for="fileInput" class="primary-label">
-                <span class="primary-icon" aria-hidden="true"></span>
-                <span class="primary-text visually-hidden">Importer</span>
-              </label>
-              <input
-                id="fileInput"
-                name="file"
-                type="file"
-                accept="image/jpeg,image/png"
-                required
-              />
-              <p class="help" id="dropHint">
-                <strong>Cliquer pour importer une image</strong>
-                <span class="help-sub">ou glisser et déposer.</span>
-                <span class="file-types visually-hidden"
-                  >SVG, PNG, JPG ou GIF</span
-                >
-              </p>
-            </div>
-
-            <div class="advanced-panels" data-layout="stack" data-gap="s">
-              <div class="field-group resize-panel" id="resizeChoices" hidden>
-                <fieldset
-                  class="inline-fields"
-                  data-layout="stack"
-                  role="radiogroup"
-                  aria-labelledby="resizeTitle"
-                >
-                  <legend id="resizeTitle" class="panel-title">
-                    Redimensionnement
-                  </legend>
-                  <div data-layout="cluster" data-gap="s">
-                    <input
-                      type="radio"
-                      name="resize"
-                      id="size-original"
-                      value="original"
-                    />
-                    <label for="size-original"
-                      >Dimensions d'origine
-                      <span class="resize-info" data-role="original-dim"></span
-                    ></label>
-                  </div>
-                  <div data-layout="cluster" data-gap="s">
-                    <input
-                      type="radio"
-                      name="resize"
-                      id="size-web"
-                      value="1200"
-                      checked
-                    />
-                    <label for="size-web">
-                      Dimensions optimisées Web
-                      <span class="resize-info" data-role="web-dim"></span>
-                      <small>(conseillé)</small>
-                    </label>
-                  </div>
-                </fieldset>
-              </div>
-
-              <div class="field-group format-panel" id="formatPanel" hidden>
-                <fieldset
-                  class="inline-fields"
-                  data-layout="stack"
-                  role="radiogroup"
-                  aria-labelledby="formatTitle"
-                >
-                  <legend id="formatTitle" class="panel-title">
-                    Format de fichier
-                  </legend>
-                  <div data-layout="cluster" data-gap="s">
-                    <input
-                      type="radio"
-                      name="format"
-                      id="format-processed"
-                      value="processed"
-                      checked
-                    />
-                    <label for="format-processed"
-                      >Format d'origine
-                      <span
-                        class="format-info"
-                        data-role="format-original"
-                      ></span
-                    ></label>
-                  </div>
-                  <div data-layout="cluster" data-gap="s">
-                    <input
-                      type="radio"
-                      name="format"
-                      id="format-webp"
-                      value="webp"
-                    />
-                    <label for="format-webp"
-                      >Format WebP <small>(conseillé)</small></label
-                    >
-                  </div>
-                </fieldset>
-              </div>
-            </div>
-          </div>
-
+          <!-- Input file -->
           <div
-            class="field-group bilan-panel"
-            id="bilanPlaceholder"
-            role="group"
-            aria-labelledby="bilanTitle"
-            hidden
+            class="dropzone"
+            id="dropZone"
+            role="button"
+            tabindex="0"
+            aria-describedby="dropHint"
           >
-            <h3 id="bilanTitle">Bilan</h3>
-            <div id="bilanContent" data-state="empty">
-              <p class="bilan-placeholder">
-                Le bilan de la compression (poids, économies en CO₂) apparaitra
-                ici.
-              </p>
-            </div>
+            <label for="fileInput" class="primary-label">
+              <span class="primary-icon" aria-hidden="true"></span>
+              <span class="primary-text visually-hidden">Importer</span>
+            </label>
+            <input
+              id="fileInput"
+              class="file-input"
+              name="file"
+              type="file"
+              accept="image/jpeg,image/png"
+              required
+            />
+            <p class="help" id="dropHint">
+              <strong>Cliquer pour importer une image</strong>
+              <span class="help-sub">ou glisser et déposer.</span>
+              <span class="file-types visually-hidden"
+                >SVG, PNG, JPG ou GIF</span
+              >
+            </p>
           </div>
         </section>
+
+        <!-- Advanced options -->
+        <div class="advanced-panels" data-layout="stack" data-gap="s">
+          <div class="field-group resize-panel" id="resizeChoices" hidden>
+            <fieldset
+              class="inline-fields"
+              data-layout="stack"
+              role="radiogroup"
+              aria-labelledby="resizeTitle"
+            >
+              <legend id="resizeTitle" class="panel-title">
+                Redimensionnement
+              </legend>
+              <div data-layout="cluster" data-gap="s">
+                <input
+                  type="radio"
+                  name="resize"
+                  id="size-original"
+                  value="original"
+                />
+                <label for="size-original"
+                  >Dimensions d'origine
+                  <span class="resize-info" data-role="original-dim"></span
+                ></label>
+              </div>
+              <div data-layout="cluster" data-gap="s">
+                <input
+                  type="radio"
+                  name="resize"
+                  id="size-web"
+                  value="1200"
+                  checked
+                />
+                <label for="size-web">
+                  Dimensions optimisées Web
+                  <span class="resize-info" data-role="web-dim"></span>
+                  <small>(conseillé)</small>
+                </label>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="field-group format-panel" id="formatPanel" hidden>
+            <fieldset
+              class="inline-fields"
+              data-layout="stack"
+              role="radiogroup"
+              aria-labelledby="formatTitle"
+            >
+              <legend id="formatTitle" class="panel-title">
+                Format de fichier
+              </legend>
+              <div data-layout="cluster" data-gap="s">
+                <input
+                  type="radio"
+                  name="format"
+                  id="format-processed"
+                  value="processed"
+                  checked
+                />
+                <label for="format-processed"
+                  >Format d'origine
+                  <span class="format-info" data-role="format-original"></span
+                ></label>
+              </div>
+              <div data-layout="cluster" data-gap="s">
+                <input
+                  type="radio"
+                  name="format"
+                  id="format-webp"
+                  value="webp"
+                />
+                <label for="format-webp"
+                  >Format WebP <small>(conseillé)</small></label
+                >
+              </div>
+            </fieldset>
+          </div>
+        </div>
+
+        <!-- Bilan -->
+        <div
+          class="field-group bilan-panel"
+          id="bilanPlaceholder"
+          role="group"
+          aria-labelledby="bilanTitle"
+          hidden
+        >
+          <h3 id="bilanTitle">Bilan</h3>
+          <div id="bilanContent" data-state="empty">
+            <p class="bilan-placeholder">
+              Le bilan de la compression (poids, économies en CO₂) apparaitra
+              ici.
+            </p>
+          </div>
+        </div>
       </section>
 
       <section
