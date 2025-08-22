@@ -293,9 +293,12 @@ th {
 .preview-stack {
   position: relative;
   display: inline-block;
+  background-color: var(--layer-1);
+  border-radius: var(--radius-md);
   cursor: crosshair;
   & img {
     display: block;
+    width: auto; /* n’agrandit pas au-delà de la taille intrinsèque */
     max-width: 100%;
     height: auto;
   }
@@ -314,7 +317,11 @@ th {
   opacity: 0;
   transition: opacity var(--transition-duration) ease;
 }
-/* plus de modification sur .proc-preview : on garde l'image compressée pleinement visible */
+
+/* état swap : changer le curseur pendant le maintien */
+.figure-processed.showing-original .preview-stack {
+  cursor: cell;
+}
 
 .preview-hint {
   display: block;
@@ -339,9 +346,14 @@ th {
     display: block;
     width: 100%;
     height: auto;
-    border-radius: var(--radius-md);
-    background: var(--layer-1);
   }
+}
+
+/* Empêche l’upscale des images d’aperçu dans la pile (surclasse .figure img) */
+.figure .preview-stack img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
 }
 
 details {
