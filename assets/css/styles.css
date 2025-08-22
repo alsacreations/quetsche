@@ -572,11 +572,10 @@ details {
     170deg,
     oklch(41.673% 0.21521 275.576 / 0.4),
     oklch(80% 0.24362 138.122 / 0.4),
-    oklch(41.673% 0.21521 275.576 / 0.4),
-    oklch(57.679% 0.20373 335.4 / 0.4)
+    oklch(57.679% 0.20373 335.4 / 0.5)
   );
   background-size: 300% 300%;
-  animation: gradient-animation 10s ease infinite alternate;
+  animation: gradient-animation 20s linear infinite alternate;
 }
 
 @keyframes gradient-animation {
@@ -584,10 +583,10 @@ details {
     background-position: 0% 0%;
   }
   25% {
-    background-position: 25% 20%;
+    background-position: 25% 50%;
   }
   50% {
-    background-position: 75% 50%;
+    background-position: 75% 25%;
   }
   100% {
     background-position: 100% 100%;
