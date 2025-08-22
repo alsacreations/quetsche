@@ -444,10 +444,11 @@ function updateBilan() {
         .split("/")
         .pop()
         .toUpperCase()}) : <span class="bilan-val">${orig}</span></li>
-      <li>Poids compressé (${chosenFormat}) : <span class="bilan-val">${chosenSize}</span> <span class="bilan-gain">(${pct})</span></li>
-      <li>Octets économisés : <span class="bilan-val">${formatBytes(
-        bytesSaved
-      )}</span></li>
+  <li>Poids compressé (${chosenFormat}) : <span class="bilan-val">${chosenSize}</span></li>
+  <li>Octets économisés : <span class="bilan-val">${formatBytes(
+    bytesSaved
+  )}</span></li>
+  <li>Gain : <span class="bilan-gain">${pct}</span></li>
       <li>Réduction CO₂ estimée : <span class="bilan-val">${co2Saved}</span></li>
     </ul>
     <p class="metrics-note bilan-note"><small>Estimation CO₂ (~0,5 g / Mo transféré) source indicative : <a href="https://www.websitecarbon.com/" target="_blank" rel="noopener noreferrer">Website Carbon</a></small></p>
@@ -548,17 +549,42 @@ function focusResultsHeading() {
 }
 
 function ensurePreviewStructure() {
-  if (compareInner.dataset.built === "true") return;
+  // Si la structure existe déjà, on s'assure que le hint est sous l'image (hors figcaption)
+  if (compareInner.dataset.built === "true") {
+    const existingFigure = compareInner.querySelector(".figure-processed");
+    if (existingFigure) {
+      const existingHint = existingFigure.querySelector(".preview-hint");
+      const existingStack = existingFigure.querySelector(".preview-stack");
+      if (
+        existingHint &&
+        existingStack &&
+        existingHint.parentElement &&
+        existingHint.parentElement.tagName.toLowerCase() === "figcaption"
+      ) {
+        // Déplace le hint juste après la pile d'aperçu
+        existingStack.insertAdjacentElement("afterend", existingHint);
+      }
+    }
+    return;
+  }
   compareInner.innerHTML = "";
   const figProcessed = document.createElement("figure");
   figProcessed.className = "figure figure-processed";
-  figProcessed.innerHTML = `<figcaption>Image optimisée (<span class=\"proc-dim\"></span>, <span class=\"proc-size\"></span>, <span class=\"proc-gain gain\"></span>) <span class=\"inline-download-wrapper\"></span>
-    <small class=\"preview-hint\" aria-live=\"polite\">(clic maintenu pour voir l'image originale)</small>
-    </figcaption>
+  figProcessed.innerHTML = `
+  <figcaption data-layout=\"repel\">
+  <span class=\"proc-title\">Image optimisée</span>
+  <span class=\"proc-values\">
+    <span class=\"proc-dim visually-hidden\"></span>
+    <span class=\"proc-size pill\"></span>
+    <span class=\"proc-gain gain pill\"></span>
+  </span>
+  <span class=\"inline-download-wrapper\"></span>
+  </figcaption>
     <div class=\"preview-stack\">
       <img class=\"proc-preview\" alt=\"Aperçu image compressée\" />
       <img class=\"orig-preview\" alt=\"Aperçu image originale\" aria-hidden=\"true\" />
-    </div>`;
+    </div>
+    <small class=\"preview-hint\" aria-live=\"polite\">(clic maintenu pour voir l'image originale)</small>`;
   compareInner.appendChild(figProcessed);
   procPreview = figProcessed.querySelector(".proc-preview");
   origPreview = figProcessed.querySelector(".orig-preview"); // assignation ajoutée

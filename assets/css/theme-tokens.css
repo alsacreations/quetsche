@@ -33,9 +33,9 @@
   --selection: light-dark(var(--color-orange-300), var(--color-orange-500));
   --accent: light-dark(var(--primary), var(--color-blue-300));
   --accent-invert: light-dark(var(--color-blue-300), var(--primary));
-  --warning: light-dark(var(--color-orange-500), var(--color-orange-300));
-  --error: light-dark(var(--color-red-500), var(--color-red-300));
-  --success: light-dark(var(--color-green-500), var(--color-green-300));
+  --warning: light-dark(var(--color-orange-500), var(--color-orange-100));
+  --error: light-dark(var(--color-red-500), var(--color-red-100));
+  --success: light-dark(var(--color-green-500), var(--color-green-100));
   --border-light: var(--color-gray-200);
   --border-medium: var(--color-gray-400);
   --border-dark: var(--color-gray-600);

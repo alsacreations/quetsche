@@ -180,14 +180,14 @@
 }
 .help {
   margin: 0;
-  font-size: var(--text-m);
+  font-size: var(--text-16);
   color: var(--on-surface-secondary);
 }
 
 /* Panels */
 .panel-title {
   margin-block: 0 var(--spacing-s);
-  font-size: var(--text-m);
+  font-size: var(--text-16);
   font-weight: var(--font-weight-semibold);
 }
 .resize-panel {
@@ -334,7 +334,7 @@ th {
   display: grid;
   row-gap: var(--gap-s);
   & figcaption {
-    font-size: var(--text-m);
+    font-size: var(--text-16);
   }
   & img {
     display: block;
@@ -343,16 +343,6 @@ th {
     border-radius: var(--radius-md);
     background: var(--layer-1);
   }
-}
-
-.gain {
-  font-weight: var(--font-weight-semibold);
-}
-.gain-positive {
-  color: var(--success);
-}
-.gain-negative {
-  color: var(--error);
 }
 
 details {
@@ -374,15 +364,29 @@ details {
 
 /* Lien inline dans le figcaption compressé */
 .inline-download {
+  display: inline-flex;
+  gap: 0; /* l'espacement est géré par le margin du pseudo-élément */
   align-items: center;
   padding: var(--spacing-4) var(--spacing-12);
-  font-size: var(--text-m);
+  font-size: var(--text-16);
   background: var(--accent-invert);
   color: var(--on-primary);
   border-radius: var(--radius-md);
   text-decoration: none;
   transition: background var(--transition-duration),
     color var(--transition-duration);
+  &::after {
+    /* Icône décorative réutilisée depuis .primary-icon, placée à droite du label */
+    content: "";
+    width: 1.1rem;
+    height: 1.1rem;
+    display: inline-block;
+    background-color: currentColor; /* hérite de la couleur du lien */
+    margin-left: var(--spacing-8);
+    rotate: 180deg; /* orientation vers le bas, cohérente avec .primary-icon */
+    mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'><path d='M12 2v13M5 8l7-6 7 6M21 22H3' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>")
+      no-repeat center/contain;
+  }
   &:hover,
   &:focus-visible {
     background-color: oklch(
@@ -400,7 +404,7 @@ details {
     list-style: disc;
     margin: 0 0 var(--spacing-m) var(--spacing-l);
     padding: 0;
-    font-size: var(--text-m);
+    font-size: var(--text-16);
   }
   & .bilan-list li {
     margin-bottom: var(--spacing-8);
@@ -422,13 +426,13 @@ details {
   }
   & .bilan-placeholder {
     margin: 0;
-    font-size: var(--text-m);
+    font-size: var(--text-16);
   }
 }
 
 /* Statut (aria-live) */
 .status {
-  font-size: var(--text-m);
+  font-size: var(--text-16);
   margin: 0;
 }
 .visually-hidden {
@@ -478,6 +482,22 @@ details {
       animation: spaceboots 2s linear infinite alternate;
     }
   }
+}
+
+.pill {
+  display: inline-grid;
+  padding: var(--spacing-2) var(--spacing-8);
+  background-color: var(--on-surface);
+  color: var(--surface);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-bold);
+}
+
+.gain-positive {
+  background-color: var(--success);
+}
+.gain-negative {
+  background-color: var(--error);
 }
 
 @keyframes spaceboots {
