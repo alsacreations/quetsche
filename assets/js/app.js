@@ -429,26 +429,48 @@ function updateBilan() {
     mode === "webp" && previews.webp
       ? "WebP"
       : meta.processed.mime.split("/").pop()?.toUpperCase() || "";
+
   const chosenSizeBytes = chosenBlob.size;
-  const bytesSaved = Math.max(0, origBytes - chosenSizeBytes);
-  const pctSaved =
-    origBytes > 0 ? ((bytesSaved / origBytes) * 100).toFixed(1) : "0";
+  // Delta: positif si plus lourd, négatif si plus léger
+  const deltaBytes = chosenSizeBytes - origBytes;
+  const absDeltaBytes = Math.abs(deltaBytes);
+  const isHeavier = deltaBytes > 0;
+
+  // Pourcentage d'écart relatif au poids d'origine
+  let pctRaw = 0;
+  if (origBytes > 0) pctRaw = ((origBytes - chosenSizeBytes) / origBytes) * 100; // >0 si gain
+  const absPct = Math.abs(pctRaw);
+  const pctRounded = Math.round(absPct * 10) / 10;
+  const pctStr =
+    pctRounded === 0
+      ? "0%"
+      : (pctRaw >= 0 ? "-" : "+") + pctRounded.toFixed(1) + "%";
+
+  // CO2: seulement une réduction si on gagne, sinon 0
   const co2PerMB = 0.5; // g CO₂ / Mo
-  const co2Saved = ((bytesSaved / (1024 * 1024)) * co2PerMB).toFixed(2) + " g";
+  const co2Saved =
+    pctRaw <= 0
+      ? "0.00 g"
+      : ((absDeltaBytes / (1024 * 1024)) * co2PerMB).toFixed(2) + " g";
+
   const orig = formatBytes(origBytes);
   const chosenSize = formatBytes(chosenSizeBytes);
-  const pct = `-${pctSaved}%`;
+  const bytesLabel = isHeavier ? "Octets supplémentaires" : "Octets économisés";
+  const gainLabel = isHeavier ? "Perte" : "Gain";
+
   const html = `
     <ul class="bilan-list" role="list">
       <li>Poids originel (${meta.original.mime
         .split("/")
         .pop()
         .toUpperCase()}) : <span class="bilan-val">${orig}</span></li>
-  <li>Poids compressé (${chosenFormat}) : <span class="bilan-val">${chosenSize}</span></li>
-  <li>Octets économisés : <span class="bilan-val">${formatBytes(
-    bytesSaved
+      <li>Poids compressé (${chosenFormat}) : <span class="bilan-val">${chosenSize}</span></li>
+      <li>${bytesLabel} : <span class="bilan-val">${formatBytes(
+    absDeltaBytes
   )}</span></li>
-  <li>Gain : <span class="bilan-gain">${pct}</span></li>
+      <li>${gainLabel} : <span class="bilan-gain${
+    isHeavier ? " is-negative" : ""
+  }">${pctStr}</span></li>
       <li>Réduction CO₂ estimée : <span class="bilan-val">${co2Saved}</span></li>
     </ul>
     <p class="metrics-note bilan-note"><small>Estimation CO₂ (~0,5 g / Mo transféré) source indicative : <a href="https://www.websitecarbon.com/" target="_blank" rel="noopener noreferrer">Website Carbon</a></small></p>

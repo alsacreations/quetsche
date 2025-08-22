@@ -414,6 +414,10 @@ details {
   & .bilan-gain {
     color: var(--success);
     font-weight: var(--font-weight-semibold);
+
+    &.is-negative {
+      color: var(--error);
+    }
   }
   & .bilan-subtitle {
     margin: var(--spacing-l) 0 var(--spacing-8);
