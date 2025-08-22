@@ -32,7 +32,7 @@
 
 .main {
   /* conteneur principal */
-  padding: var(--spacing-l) var(--spacing-m);
+  padding-block: var(--spacing-m) var(--spacing-l);
   display: grid;
   row-gap: var(--gap-l);
 }
@@ -127,7 +127,7 @@
   border-radius: var(--radius-full);
   display: inline-grid;
   place-items: center;
-  background-color: #6c235a;
+  background-color: var(--color-quetsche);
   color: var(--on-primary);
   rotate: 180deg; /* orientation vers le bas */
   transition: background var(--transition-duration),
@@ -152,7 +152,7 @@
   }
   & .help {
     text-align: center;
-    color: var(--on-surface);
+    color: var(--color-white);
   }
   & .help-sub {
     display: block;
@@ -409,11 +409,11 @@ details {
     margin-bottom: var(--spacing-8);
   }
   & .bilan-val {
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-bold);
   }
   & .bilan-gain {
     color: var(--success);
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-bold);
 
     &.is-negative {
       color: var(--error);
@@ -423,6 +423,9 @@ details {
     margin: var(--spacing-l) 0 var(--spacing-8);
     font-size: var(--text-l);
     font-weight: var(--font-weight-semibold);
+  }
+  & .bilan-note {
+    line-height: var(--leading-20);
   }
   & .bilan-note a {
     text-decoration: underline;
@@ -457,7 +460,7 @@ details {
 
 .footer {
   padding-block: var(--spacing-m);
-  background-color: var(--layer-1);
+  border-top: 1px solid var(--color-quetsche);
   text-align: center;
   & p {
     margin-bottom: 0;
