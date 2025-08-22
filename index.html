@@ -2,16 +2,68 @@
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
     <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg" />
     <meta name="author" content="Alsacreations" />
+    <meta name="application-name" content="Quetsche" />
     <title>Quetsche – Compression de photos</title>
     <meta
       name="description"
       content="Outil local et basique de compression et redimensionnement d'images (JPEG, PNG, GIF)."
     />
+    <link rel="canonical" href="https://quetsche.alsacreations.com/" />
+    <link
+      rel="alternate"
+      hreflang="fr"
+      href="https://quetsche.alsacreations.com/"
+    />
+    <meta name="robots" content="index,follow" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="theme-color"
+      content="#FFFFFF"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content="#000000"
+      media="(prefers-color-scheme: dark)"
+    />
+
+    <!-- Open Graph -->
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Quetsche" />
+    <meta property="og:title" content="Quetsche – Compression de photos" />
+    <meta
+      property="og:description"
+      content="Outil local et basique de compression et redimensionnement d'images (JPEG, PNG, GIF)."
+    />
+    <meta property="og:url" content="https://quetsche.alsacreations.com/" />
+    <meta
+      property="og:image"
+      content="https://quetsche.alsacreations.com/public/samples/questche_400.webp"
+    />
+    <meta property="og:image:alt" content="Exemple de photo Quetsche" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Quetsche – Compression de photos" />
+    <meta
+      name="twitter:description"
+      content="Outil local et basique de compression et redimensionnement d'images (JPEG, PNG, GIF)."
+    />
+    <meta
+      name="twitter:image"
+      content="https://quetsche.alsacreations.com/public/samples/questche_400.webp"
+    />
     <link rel="preload" as="style" href="assets/css/app.css" />
     <link rel="stylesheet" href="assets/css/app.css" />
+    <link rel="modulepreload" href="assets/js/app.js" />
     <link rel="preload" as="image" href="public/samples/questche_400.webp" />
     <link
       rel="preload"
@@ -20,8 +72,46 @@
       type="font/woff2"
       crossorigin
     />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Quetsche",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Web",
+        "url": "https://quetsche.alsacreations.com/",
+        "description": "Outil local et basique de compression et redimensionnement d'images (JPEG, PNG, GIF).",
+        "image": "https://quetsche.alsacreations.com/public/samples/questche_400.webp",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "EUR"
+        }
+      }
+    </script>
   </head>
   <body data-layout="liquid" class="gradient-background">
+    <style>
+      /* Rendre le lien d’évitement visible au focus (sans dépendre des feuilles principales) */
+      .skip-link:focus {
+        position: fixed;
+        left: var(--spacing-16, 1rem);
+        top: var(--spacing-16, 1rem);
+        background: var(--surface, #fff);
+        color: var(--on-surface, #111);
+        padding: var(--spacing-8, 0.5rem) var(--spacing-12, 0.75rem);
+        border-radius: var(--radius-sm, 6px);
+        outline: 2px solid var(--focus-ring-color, Highlight);
+        z-index: 1000;
+      }
+    </style>
+    <noscript>
+      <div class="noscript-note" role="note">
+        JavaScript est désactivé. La compression d’images nécessite JavaScript;
+        vous pouvez toutefois consulter les informations et la FAQ.
+      </div>
+    </noscript>
+    <a class="skip-link visually-hidden" href="#main">Aller au contenu</a>
     <header class="header" id="top">
       <h1>Quetsche</h1>
       <p class="tagline">Compression d'images. Simple. Basique.</p>
