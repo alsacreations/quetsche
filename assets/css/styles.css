@@ -338,8 +338,6 @@ th {
 }
 
 .figure {
-  display: grid;
-  row-gap: var(--gap-s);
   & figcaption {
     font-size: var(--text-16);
   }
@@ -348,6 +346,26 @@ th {
     width: 100%;
     height: auto;
   }
+}
+
+[data-gap="xs"] {
+  gap: 8px;
+}
+
+[data-gap="s"] {
+  gap: var(--gap-s);
+}
+
+[data-gap="m"] {
+  gap: var(--gap-m);
+}
+
+[data-gap="l"] {
+  gap: var(--gap-l);
+}
+
+[data-gap="xl"] {
+  gap: var(--gap-xl);
 }
 
 /* Empêche l’upscale des images d’aperçu dans la pile (surclasse .figure img) */

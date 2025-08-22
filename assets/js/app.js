@@ -575,6 +575,9 @@ function ensurePreviewStructure() {
   if (compareInner.dataset.built === "true") {
     const existingFigure = compareInner.querySelector(".figure-processed");
     if (existingFigure) {
+      // Assure les attributs data sur la figure existante
+      existingFigure.setAttribute("data-layout", "stack");
+      existingFigure.setAttribute("data-gap", "xs");
       const existingHint = existingFigure.querySelector(".preview-hint");
       const existingStack = existingFigure.querySelector(".preview-stack");
       if (
@@ -592,6 +595,9 @@ function ensurePreviewStructure() {
   compareInner.innerHTML = "";
   const figProcessed = document.createElement("figure");
   figProcessed.className = "figure figure-processed";
+  // Ajout des attributs de layout demandés
+  figProcessed.setAttribute("data-layout", "stack");
+  figProcessed.setAttribute("data-gap", "xs");
   figProcessed.innerHTML = `
   <figcaption data-layout=\"repel\">
   <span class=\"proc-title\">Image optimisée</span>
