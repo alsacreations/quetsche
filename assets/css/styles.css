@@ -17,7 +17,7 @@
 .header {
   /* zone header */
   text-align: center;
-  margin-bottom: var(--spacing-l);
+  margin-block: var(--spacing-s) var(--spacing-l);
 
   & h1 {
     font-size: var(--text-4xl);
@@ -71,19 +71,24 @@
   }
 
   &.has-result {
+    position: absolute;
+    scale: 0.3;
+
+    & .dropzone,
+    & label {
+      scale: 1.4;
+    }
+
+    & .help {
+      display: none;
+    }
+
+    @media (width < 48rem) {
+      right: calc(var(--spacing-32, 32px) * -1);
+      top: 0;
+    }
     @media (width >= 48rem) {
-      position: absolute;
-      scale: 0.3;
       translate: -32% -56%;
-
-      & .dropzone,
-      & label {
-        scale: 1.4;
-      }
-
-      & .help {
-        display: none;
-      }
     }
   }
 }
