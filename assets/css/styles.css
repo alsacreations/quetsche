@@ -27,7 +27,6 @@
   & .tagline {
     font-size: var(--text-l);
     margin: 0;
-    color: var(--on-surface-secondary);
   }
 }
 
@@ -485,19 +484,31 @@ details {
 }
 
 .pill {
-  display: inline-grid;
+  display: inline-flex;
   padding: var(--spacing-2) var(--spacing-8);
   background-color: var(--on-surface);
   color: var(--surface);
   border-radius: var(--radius-md);
   font-weight: var(--font-weight-bold);
+
+  &::before {
+    scale: 1.4;
+  }
 }
 
 .gain-positive {
   background-color: var(--success);
+
+  &::before {
+    content: "🌱 ";
+  }
 }
 .gain-negative {
   background-color: var(--error);
+
+  &::before {
+    content: "❗ ";
+  }
 }
 
 @keyframes spaceboots {
