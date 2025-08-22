@@ -17,7 +17,7 @@
 .header {
   /* zone header */
   text-align: center;
-  margin-block: var(--spacing-s) var(--spacing-l);
+  margin-block: var(--spacing-m) var(--spacing-l);
 
   & h1 {
     font-size: var(--text-4xl);
