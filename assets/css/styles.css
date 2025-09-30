@@ -48,7 +48,6 @@
 .field-group {
   display: grid;
   row-gap: var(--gap-s);
-  background: var(--layer-1);
   padding: var(--spacing-s);
   border: 1px solid var(--primary);
   border-radius: var(--radius-lg);
@@ -330,7 +329,6 @@ th {
 }
 .inline-download-wrapper {
   display: inline-block;
-  margin-inline: var(--spacing-4);
 }
 .compare {
   display: grid;
@@ -608,5 +606,53 @@ details {
   }
   100% {
     background-position: 100% 100%;
+  }
+}
+
+/* ========== MODE BATCH (traitement par lot) ========== */
+/* Réutilise les composants existants (.pill, .proc-title, etc.) */
+
+/* Liste batch (réutilise les styles de field-group) */
+.batch-list {
+  display: grid;
+  row-gap: 0;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-lg);
+  list-style-position: inside;
+
+  & > * {
+    margin: 0;
+  }
+}
+
+/* Items batch (éléments de liste) */
+.batch-item {
+  padding: var(--spacing-s);
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--form-control-border-color, ButtonBorder);
+  }
+}
+
+/* Titre unifié pour image simple et batch */
+.proc-title {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+
+  & strong {
+    font-size: var(--text-m);
+    font-weight: var(--font-weight-bold, 600);
+  }
+
+  & small {
+    font-size: var(--text-s);
+    color: var(--on-surface-variant);
+  }
+
+  & .error-text {
+    color: var(--error);
   }
 }

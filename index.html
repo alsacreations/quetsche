@@ -162,15 +162,14 @@
               class="file-input"
               name="file"
               type="file"
-              accept="image/jpeg,image/png"
+              accept="image/jpeg,image/png,image/gif"
+              multiple
               required
             />
             <p class="help" id="dropHint">
-              <strong>Importer une image</strong>
+              <strong>Importer image(s)</strong>
               <span class="help-sub">ou glisser et déposer</span>
-              <span class="file-types visually-hidden"
-                >SVG, PNG, JPG ou GIF</span
-              >
+              <span class="file-types visually-hidden">PNG, JPG ou GIF</span>
             </p>
           </div>
         </div>
@@ -308,12 +307,6 @@
               data-layout="switcher"
               style="--col-min-size: 18rem"
             ></div>
-            <section
-              class="download-group"
-              id="downloadGroup"
-              hidden
-              aria-labelledby="downloads-title"
-            ></section>
           </div>
         </div>
       </section>
@@ -480,6 +473,13 @@
       </a>
     </footer>
 
+    <!-- JSZip pour la génération de fichiers ZIP (mode batch) -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
+      integrity="sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
     <script type="module" src="assets/js/app.js"></script>
   </body>
 </html>

@@ -19,7 +19,6 @@ const compare = document.getElementById("compare");
 const compareInner = document.getElementById("compareInner");
 // Aperçu : image compressée + original superposés
 let procPreview, origPreview, procDim, procSize, procGain; // origPreview ajouté pour swap
-const downloadGroup = document.getElementById("downloadGroup");
 // Tableau de téléchargement
 const downloadTable = document.getElementById("downloadTable");
 let downloadTbody = downloadTable ? downloadTable.querySelector("tbody") : null;
@@ -37,6 +36,16 @@ let originalImage = null; // { blob, width, height, fileName, size }
 let currentPreviews = null; // { processed:{blob,url}, webp?:{blob,url} }
 let currentMeta = null; // { original:{size,width,height,mime}, processed:{size,width,height,mime}, fileName }
 let worker = null;
+
+// Mode batch (traitement par lot) - réutilise la zone compare existante
+let batchState = {
+  active: false,
+  cancelled: false,
+  total: 0,
+  current: 0,
+  results: [], // { fileName, status, originalBlob, processedBlob, webpBlob, meta, error }
+};
+
 initWorker();
 
 // Met à jour les libellés des options de redimensionnement avec dimensions calculées
@@ -155,10 +164,18 @@ function onWorkerMessage(e) {
 
 fileInput.addEventListener("change", () => {
   if (!fileInput.files?.length) return;
-  const selected = fileInput.files[0];
-  handleFile(selected).finally(() => {
-    fileInput.value = ""; // reset après traitement
-  });
+  const files = Array.from(fileInput.files);
+
+  // Détection auto : 1 image = mode simple, 2+ = mode batch
+  if (files.length === 1) {
+    handleFile(files[0]).finally(() => {
+      fileInput.value = ""; // reset après traitement
+    });
+  } else {
+    handleBatchFiles(files).finally(() => {
+      fileInput.value = ""; // reset après traitement
+    });
+  }
 });
 
 // Drag & drop
@@ -203,7 +220,14 @@ dropZone?.addEventListener("click", (e) => {
 });
 
 resizeRadios.forEach((r) =>
-  r.addEventListener("change", () => originalImage && process())
+  r.addEventListener("change", () => {
+    // Retraiter les images batch si mode actif
+    if (batchState.active && batchState.results.length > 0) {
+      reprocessBatch();
+      return;
+    }
+    if (originalImage) process();
+  })
 );
 
 async function handleFile(file) {
@@ -239,6 +263,485 @@ async function handleFile(file) {
   };
   img.src = url;
 }
+
+/* ========== MODE BATCH (traitement par lot) ========== */
+
+async function handleBatchFiles(files) {
+  // Initialisation du mode batch
+  batchState = {
+    active: true,
+    cancelled: false,
+    total: files.length,
+    current: 0,
+    results: [],
+  };
+
+  // Afficher la zone de résultats
+  if (compressResults) compressResults.hidden = false;
+  compare.hidden = false;
+
+  // Vider et préparer compareInner pour le mode batch
+  compareInner.innerHTML = "";
+  compareInner.dataset.built = "batch";
+
+  // Afficher la progression dans status
+  announceStatus(`Traitement de ${files.length} images...`, true);
+
+  // Traitement séquentiel des images
+  for (let i = 0; i < files.length; i++) {
+    if (batchState.cancelled) break;
+
+    const file = files[i];
+    batchState.current = i + 1;
+    updateBatchProgress();
+
+    try {
+      const result = await processSingleImageForBatch(file);
+      batchState.results.push({
+        fileName: file.name,
+        status: "success",
+        originalBlob: result.originalBlob,
+        processedBlob: result.processedBlob,
+        webpBlob: result.webpBlob,
+        meta: result.meta,
+      });
+    } catch (error) {
+      batchState.results.push({
+        fileName: file.name,
+        status: "error",
+        error: error.message || "Échec du traitement",
+      });
+    }
+  }
+
+  // Afficher les résultats
+  displayBatchResults();
+  announceStatus(
+    `✓ ${
+      batchState.results.filter((r) => r.status === "success").length
+    } images traitées avec succès`,
+    false,
+    true
+  );
+}
+
+async function processSingleImageForBatch(file) {
+  // Retourne une Promise avec le résultat du traitement
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const arrayBuffer = e.target.result;
+        const blob = new Blob([arrayBuffer], { type: file.type });
+        const url = URL.createObjectURL(blob);
+        const img = new Image();
+        img.decoding = "async";
+
+        img.onload = async () => {
+          const origWidth = img.naturalWidth;
+          const origHeight = img.naturalHeight;
+
+          // Calcul des dimensions cibles (selon les réglages)
+          const quality = FIXED_QUALITY;
+          let maxSide = null;
+          const checked = document.querySelector(
+            'input[name="resize"]:checked'
+          );
+          if (checked && checked.value !== "original") {
+            maxSide = Number(checked.value);
+          }
+
+          let targetW = origWidth;
+          let targetH = origHeight;
+          if (maxSide && (origWidth > maxSide || origHeight > maxSide)) {
+            if (origWidth >= origHeight) {
+              targetW = maxSide;
+              targetH = Math.round((maxSide / origWidth) * origHeight);
+            } else {
+              targetH = maxSide;
+              targetW = Math.round((maxSide / origHeight) * origWidth);
+            }
+          }
+
+          // Envoyer au worker
+          const workerPromise = new Promise((resolveWorker, rejectWorker) => {
+            const handler = (e) => {
+              const { type, payload } = e.data;
+              if (type === "result") {
+                worker.removeEventListener("message", handler);
+                resolveWorker(payload);
+              } else if (type === "error") {
+                worker.removeEventListener("message", handler);
+                rejectWorker(new Error(payload.message));
+              }
+            };
+            worker.addEventListener("message", handler);
+
+            worker.postMessage({
+              type: "process",
+              payload: {
+                buffer: arrayBuffer,
+                options: {
+                  quality,
+                  targetW,
+                  targetH,
+                  exportWebP: true,
+                  originalMime: file.type,
+                  fileName: file.name,
+                },
+              },
+            });
+          });
+
+          const workerResult = await workerPromise;
+
+          resolve({
+            originalBlob: blob,
+            processedBlob: workerResult.previews.processed.blob,
+            webpBlob: workerResult.previews.webp?.blob,
+            meta: workerResult.meta,
+          });
+
+          URL.revokeObjectURL(url);
+        };
+
+        img.onerror = () => reject(new Error("Impossible de charger l'image"));
+        img.src = url;
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = () => reject(new Error("Échec de lecture du fichier"));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function updateBatchProgress() {
+  const message = `Traitement en cours... ${batchState.current} / ${batchState.total} images`;
+  announceStatus(message, true);
+}
+
+function displayBatchResults() {
+  // Calcul du bilan global
+  let totalOrigSize = 0;
+  let totalOptSize = 0;
+  let successCount = 0;
+
+  batchState.results.forEach((result) => {
+    if (result.status === "success") {
+      successCount++;
+      totalOrigSize += result.meta.original.size;
+      // Meilleure version (processed ou webp)
+      const procSize = result.meta.processed.size;
+      const webpSize = result.webpBlob ? result.webpBlob.size : Infinity;
+      totalOptSize += Math.min(procSize, webpSize);
+    }
+  });
+
+  const saved = totalOrigSize - totalOptSize;
+  const percent =
+    totalOrigSize > 0 ? ((saved / totalOrigSize) * 100).toFixed(1) : 0;
+  const co2 = ((saved / (1024 * 1024)) * 0.5).toFixed(2);
+
+  // Mise à jour du bilan-panel avec les données du batch (inclut le bouton ZIP)
+  updateBilanPanel({
+    mode: "batch",
+    totalOrigSize,
+    totalOptSize,
+    successCount,
+    totalCount: batchState.total,
+    co2Saved: co2,
+  });
+
+  // Génération de la liste des images dans compareInner (liste ordonnée)
+  compareInner.innerHTML = "";
+  compareInner.removeAttribute("data-layout");
+  compareInner.removeAttribute("data-gap");
+  compareInner.style.setProperty("--col-min-size", "");
+
+  const ol = document.createElement("ol");
+  ol.className = "field-group batch-list";
+
+  batchState.results.forEach((result, index) => {
+    const item = createBatchResultItem(result, index);
+    ol.appendChild(item);
+  });
+
+  compareInner.appendChild(ol);
+}
+
+function createBatchResultItem(result, index) {
+  // Création d'un élément de liste
+  const li = document.createElement("li");
+  li.className = "batch-item";
+  li.dataset.status = result.status;
+  li.setAttribute("data-layout", "repel");
+
+  if (result.status === "success") {
+    // Déterminer la version à afficher selon le choix de l'utilisateur
+    const chosenFormat = document.querySelector('input[name="format"]:checked');
+    const formatMode = chosenFormat ? chosenFormat.value : "processed";
+
+    let displaySize, displayFormat, displayBlob;
+    if (formatMode === "webp" && result.webpBlob) {
+      displaySize = result.webpBlob.size;
+      displayBlob = result.webpBlob;
+      displayFormat = "WebP";
+    } else {
+      displaySize = result.meta.processed.size;
+      displayBlob = result.processedBlob;
+      displayFormat =
+        result.meta.processed.mime.split("/")[1]?.toUpperCase() || "JPEG";
+    }
+
+    const saved = result.meta.original.size - displaySize;
+    const percent =
+      result.meta.original.size > 0
+        ? ((saved / result.meta.original.size) * 100).toFixed(1)
+        : 0;
+
+    // Contenu du li (réutilise repel layout)
+    li.innerHTML = `
+      <span class="proc-title">
+        <strong>${escapeHtml(result.fileName)}</strong>
+      </span>
+      <span class="proc-values" data-layout="cluster" data-gap="xs">
+        <span class="pill">${formatBytes(
+          result.meta.original.size
+        )} → ${formatBytes(displaySize)}</span>
+        <span class="pill ${saved > 0 ? "gain-positive" : "gain-negative"}">${
+      saved > 0 ? "-" : "+"
+    }${Math.abs(percent).toFixed(1)}%</span>
+      </span>
+    `;
+  } else {
+    // Erreur : affichage simplifié
+    li.innerHTML = `
+      <span class="proc-title">
+        <strong>⚠️ ${escapeHtml(result.fileName)}</strong>
+        <small class="error-text">${escapeHtml(
+          result.error || "Erreur inconnue"
+        )}</small>
+      </span>
+    `;
+    li.classList.add("batch-error");
+  }
+
+  return li;
+}
+
+// Fonction pour attacher le gestionnaire de téléchargement ZIP
+function attachZipDownloadHandler() {
+  const btnZip = document.getElementById("btnDownloadZip");
+  if (!btnZip) return;
+
+  btnZip.addEventListener("click", async (e) => {
+    e.preventDefault();
+
+    if (typeof JSZip === "undefined") {
+      alert("JSZip n'est pas chargé. Impossible de créer le ZIP.");
+      return;
+    }
+
+    // Désactiver le lien pendant la génération
+    btnZip.style.pointerEvents = "none";
+    btnZip.style.opacity = "0.6";
+    btnZip.textContent = "Génération du ZIP...";
+
+    try {
+      const zip = new JSZip();
+      const folder = zip.folder("quetsche-export");
+
+      // Déterminer le format sélectionné
+      const chosenFormat = document.querySelector(
+        'input[name="format"]:checked'
+      );
+      const formatMode = chosenFormat ? chosenFormat.value : "processed";
+
+      // Ajouter uniquement les images selon le format sélectionné
+      batchState.results.forEach((result) => {
+        if (result.status === "success") {
+          const baseName = result.fileName.replace(/\.[^.]+$/, "");
+
+          // Ajouter le fichier selon le format choisi
+          if (formatMode === "webp" && result.webpBlob) {
+            // Mode WebP : ajouter uniquement le fichier WebP
+            folder.file(`${baseName}.webp`, result.webpBlob);
+          } else {
+            // Mode processed : ajouter uniquement le fichier compressé (JPEG/PNG/GIF)
+            const procExt = result.meta.processed.mime.split("/")[1] || "jpg";
+            folder.file(`${baseName}.${procExt}`, result.processedBlob);
+          }
+        }
+      });
+
+      // Générer le ZIP
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `quetsche-batch-${Date.now()}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      // Réactiver le lien
+      btnZip.style.pointerEvents = "";
+      btnZip.style.opacity = "";
+      btnZip.textContent = "Télécharger tout (ZIP)";
+    } catch (error) {
+      alert("Erreur lors de la génération du ZIP : " + error.message);
+      // Réactiver le lien en cas d'erreur
+      btnZip.style.pointerEvents = "";
+      btnZip.style.opacity = "";
+      btnZip.textContent = "Télécharger tout (ZIP)";
+    }
+  });
+}
+
+// Retraiter toutes les images batch avec les nouveaux réglages
+async function reprocessBatch() {
+  announceStatus(`Retraitement de ${batchState.total} images...`, true);
+
+  // Récupérer les blobs originaux pour retraiter
+  const originalFiles = batchState.results.map((result, index) => ({
+    blob: result.originalBlob,
+    name: result.fileName,
+    index,
+  }));
+
+  // Réinitialiser les résultats
+  batchState.results = [];
+  batchState.current = 0;
+
+  // Retraiter chaque image
+  for (let i = 0; i < originalFiles.length; i++) {
+    const { blob, name } = originalFiles[i];
+    batchState.current = i + 1;
+    updateBatchProgress();
+
+    try {
+      // Créer un File à partir du blob
+      const file = new File([blob], name, { type: blob.type });
+      const result = await processSingleImageForBatch(file);
+      batchState.results.push({
+        fileName: name,
+        status: "success",
+        originalBlob: blob,
+        processedBlob: result.processedBlob,
+        webpBlob: result.webpBlob,
+        meta: result.meta,
+      });
+    } catch (error) {
+      batchState.results.push({
+        fileName: name,
+        status: "error",
+        error: error.message || "Échec du traitement",
+      });
+    }
+  }
+
+  // Réafficher les résultats
+  displayBatchResults();
+  announceStatus(
+    `✓ ${
+      batchState.results.filter((r) => r.status === "success").length
+    } images retraitées`,
+    false,
+    true
+  );
+}
+
+// Mettre à jour l'affichage des images batch selon le format sélectionné
+function updateBatchDisplay() {
+  const chosen = document.querySelector('input[name="format"]:checked');
+  const mode = chosen ? chosen.value : "processed";
+
+  // Parcourir tous les éléments de liste batch pour mettre à jour les pills
+  const items = compareInner.querySelectorAll(".batch-item");
+  items.forEach((item, index) => {
+    const result = batchState.results[index];
+    if (!result || result.status !== "success") return;
+
+    // Sélectionner le blob selon le choix de l'utilisateur
+    let displayBlob;
+    if (mode === "webp" && result.webpBlob) {
+      displayBlob = result.webpBlob;
+    } else {
+      displayBlob = result.processedBlob;
+    }
+
+    // Mettre à jour les valeurs (pills) selon le format choisi
+    const displaySize = displayBlob.size;
+    const saved = result.meta.original.size - displaySize;
+    const percent =
+      result.meta.original.size > 0
+        ? ((saved / result.meta.original.size) * 100).toFixed(1)
+        : 0;
+
+    const pills = item.querySelectorAll(".proc-values .pill");
+    if (pills.length >= 2) {
+      // Premier pill : taille original → taille optimisée (dynamique)
+      pills[0].textContent = `${formatBytes(
+        result.meta.original.size
+      )} → ${formatBytes(displaySize)}`;
+      // Deuxième pill : pourcentage de gain
+      pills[1].textContent = `${saved > 0 ? "-" : "+"}${Math.abs(
+        percent
+      ).toFixed(1)}%`;
+      pills[1].className = `pill ${
+        saved > 0 ? "gain-positive" : "gain-negative"
+      }`;
+    }
+  });
+
+  // Recalculer et mettre à jour le bilan global
+  let totalOrigSize = 0;
+  let totalOptSize = 0;
+  let successCount = 0;
+
+  batchState.results.forEach((result) => {
+    if (result.status === "success") {
+      successCount++;
+      totalOrigSize += result.meta.original.size;
+
+      // Taille selon le format choisi
+      let chosenSize;
+      if (mode === "webp" && result.webpBlob) {
+        chosenSize = result.webpBlob.size;
+      } else {
+        chosenSize = result.processedBlob.size;
+      }
+      totalOptSize += chosenSize;
+    }
+  });
+
+  const saved = totalOrigSize - totalOptSize;
+  const percent =
+    totalOrigSize > 0 ? ((saved / totalOrigSize) * 100).toFixed(1) : 0;
+  const co2 = ((saved / (1024 * 1024)) * 0.5).toFixed(2);
+
+  updateBilanPanel({
+    mode: "batch",
+    totalOrigSize,
+    totalOptSize,
+    successCount,
+    totalCount: batchState.total,
+    co2Saved: co2,
+  });
+}
+
+// Gestion des événements batch
+if (false) {
+  // Désactivé car btnCancelBatch n'existe plus
+  const btnCancelBatch = null;
+  btnCancelBatch.addEventListener("click", () => {
+    batchState.cancelled = true;
+    btnCancelBatch.disabled = true;
+    btnCancelBatch.textContent = "Annulation...";
+  });
+}
+
+/* ========== FIN MODE BATCH ========== */
 
 async function process() {
   if (!originalImage) return;
@@ -300,7 +803,12 @@ function buildResults(data) {
       formatRadios.forEach((r) => {
         r.addEventListener("change", () => {
           updateDisplayedFormat();
-          updateBilan();
+          // En mode batch, mettre à jour l'affichage des images
+          if (batchState.active && batchState.results.length > 0) {
+            updateBatchDisplay();
+          } else {
+            updateBilanPanel();
+          }
         });
       });
       // Sélection par défaut (processed) si aucune coche (évite chosen null)
@@ -367,10 +875,9 @@ function buildResults(data) {
   }
   if (downloadTbody) rows.forEach((tr) => downloadTbody.appendChild(tr));
   updateDisplayedFormat();
-  downloadGroup.hidden = false;
   if (compressResults) compressResults.hidden = false;
   announceStatus("Compression effectuée", false, true);
-  updateBilan();
+  updateBilanPanel();
 }
 
 function updateDisplayedFormat() {
@@ -391,7 +898,10 @@ function updateDisplayedFormat() {
     mode === "webp" && previews.webp
       ? previews.webp.blob
       : previews.processed.blob;
-  procSize.textContent = formatBytes(blob.size);
+  // Fusionner original → optimisé dans le premier pill
+  procSize.textContent = `${formatBytes(
+    currentMeta.original.size
+  )} → ${formatBytes(blob.size)}`;
   const deltaPct =
     currentMeta.original.size > 0
       ? (1 - blob.size / currentMeta.original.size) * 100
@@ -414,69 +924,123 @@ function updateDisplayedFormat() {
   injectInlineDownload(blob, fileNameForLink);
 }
 
-function updateBilan() {
-  if (!bilanContent || !currentMeta || !currentPreviews) return;
-  const meta = currentMeta;
-  const previews = currentPreviews;
-  const origBytes = meta.original.size;
-  const chosen = document.querySelector('input[name="format"]:checked');
-  const mode = chosen ? chosen.value : "processed";
-  const chosenBlob =
-    mode === "webp" && previews.webp
-      ? previews.webp.blob
-      : previews.processed.blob;
-  const chosenFormat =
-    mode === "webp" && previews.webp
-      ? "WebP"
-      : meta.processed.mime.split("/").pop()?.toUpperCase() || "";
+function updateBilanPanel(data) {
+  if (!bilanContent) return;
 
-  const chosenSizeBytes = chosenBlob.size;
-  // Delta: positif si plus lourd, négatif si plus léger
-  const deltaBytes = chosenSizeBytes - origBytes;
-  const absDeltaBytes = Math.abs(deltaBytes);
-  const isHeavier = deltaBytes > 0;
+  if (data && data.mode === "batch") {
+    // Mode batch : plusieurs images
+    const { totalOrigSize, totalOptSize, successCount, totalCount, co2Saved } =
+      data;
+    const saved = totalOrigSize - totalOptSize;
+    const percent =
+      totalOrigSize > 0 ? ((saved / totalOrigSize) * 100).toFixed(1) : 0;
+    const isGain = saved > 0;
 
-  // Pourcentage d'écart relatif au poids d'origine
-  let pctRaw = 0;
-  if (origBytes > 0) pctRaw = ((origBytes - chosenSizeBytes) / origBytes) * 100; // >0 si gain
-  const absPct = Math.abs(pctRaw);
-  const pctRounded = Math.round(absPct * 10) / 10;
-  const pctStr =
-    pctRounded === 0
-      ? "0%"
-      : (pctRaw >= 0 ? "-" : "+") + pctRounded.toFixed(1) + "%";
+    const html = `
+      <ul class="bilan-list" role="list">
+        <li><strong>${successCount} / ${totalCount}</strong> images traitées avec succès</li>
+        <li>Poids total original : <span class="bilan-val">${formatBytes(
+          totalOrigSize
+        )}</span></li>
+        <li>Poids total optimisé : <span class="bilan-val">${formatBytes(
+          totalOptSize
+        )}</span></li>
+        <li>Octets économisés : <span class="bilan-val">${formatBytes(
+          Math.abs(saved)
+        )}</span></li>
+        <li>Gain : <span class="bilan-gain${isGain ? "" : " is-negative"}">${
+      isGain ? "-" : "+"
+    }${Math.abs(percent)}%</span></li>
+        <li>Réduction CO₂ estimée : <span class="bilan-val">${co2Saved} g</span></li>
+      </ul>
+      <p class="metrics-note bilan-note"><small>Estimation CO₂ (~0,5 g / Mo transféré) source indicative : <a href="https://www.websitecarbon.com/" target="_blank" rel="noopener noreferrer">Website Carbon</a></small></p>
+      <span class="inline-download-wrapper"></span>
+    `;
+    bilanContent.innerHTML = html;
+    bilanContent.dataset.state = "ready";
 
-  // CO2: seulement une réduction si on gagne, sinon 0
-  const co2PerMB = 0.5; // g CO₂ / Mo
-  const co2Saved =
-    pctRaw <= 0
-      ? "0.00 g"
-      : ((absDeltaBytes / (1024 * 1024)) * co2PerMB).toFixed(2) + " g";
+    // Injecter le lien de téléchargement ZIP après l'injection HTML
+    const wrapper = bilanContent.querySelector(".inline-download-wrapper");
+    if (wrapper) {
+      const link = document.createElement("a");
+      link.className = "inline-download";
+      link.href = "#";
+      link.id = "btnDownloadZip";
+      link.textContent = "Télécharger tout (ZIP)";
+      link.setAttribute("aria-label", "Télécharger toutes les images en ZIP");
+      wrapper.appendChild(link);
+    }
 
-  const orig = formatBytes(origBytes);
-  const chosenSize = formatBytes(chosenSizeBytes);
-  const bytesLabel = isHeavier ? "Octets supplémentaires" : "Octets économisés";
-  const gainLabel = isHeavier ? "Perte" : "Gain";
+    // Réattacher le gestionnaire du bouton ZIP
+    attachZipDownloadHandler();
+  } else {
+    // Mode simple : une seule image (ancien updateBilan)
+    if (!currentMeta || !currentPreviews) return;
+    const meta = currentMeta;
+    const previews = currentPreviews;
+    const origBytes = meta.original.size;
+    const chosen = document.querySelector('input[name="format"]:checked');
+    const mode = chosen ? chosen.value : "processed";
+    const chosenBlob =
+      mode === "webp" && previews.webp
+        ? previews.webp.blob
+        : previews.processed.blob;
+    const chosenFormat =
+      mode === "webp" && previews.webp
+        ? "WebP"
+        : meta.processed.mime.split("/").pop()?.toUpperCase() || "";
 
-  const html = `
-    <ul class="bilan-list" role="list">
-      <li>Poids originel (${meta.original.mime
-        .split("/")
-        .pop()
-        .toUpperCase()}) : <span class="bilan-val">${orig}</span></li>
-      <li>Poids compressé (${chosenFormat}) : <span class="bilan-val">${chosenSize}</span></li>
-      <li>${bytesLabel} : <span class="bilan-val">${formatBytes(
-    absDeltaBytes
-  )}</span></li>
-      <li>${gainLabel} : <span class="bilan-gain${
-    isHeavier ? " is-negative" : ""
-  }">${pctStr}</span></li>
-      <li>Réduction CO₂ estimée : <span class="bilan-val">${co2Saved}</span></li>
-    </ul>
-    <p class="metrics-note bilan-note"><small>Estimation CO₂ (~0,5 g / Mo transféré) source indicative : <a href="https://www.websitecarbon.com/" target="_blank" rel="noopener noreferrer">Website Carbon</a></small></p>
-  `;
-  bilanContent.innerHTML = html;
-  bilanContent.dataset.state = "ready";
+    const chosenSizeBytes = chosenBlob.size;
+    // Delta: positif si plus lourd, négatif si plus léger
+    const deltaBytes = chosenSizeBytes - origBytes;
+    const absDeltaBytes = Math.abs(deltaBytes);
+    const isHeavier = deltaBytes > 0;
+
+    // Pourcentage d'écart relatif au poids d'origine
+    let pctRaw = 0;
+    if (origBytes > 0)
+      pctRaw = ((origBytes - chosenSizeBytes) / origBytes) * 100; // >0 si gain
+    const absPct = Math.abs(pctRaw);
+    const pctRounded = Math.round(absPct * 10) / 10;
+    const pctStr =
+      pctRounded === 0
+        ? "0%"
+        : (pctRaw >= 0 ? "-" : "+") + pctRounded.toFixed(1) + "%";
+
+    // CO2: seulement une réduction si on gagne, sinon 0
+    const co2PerMB = 0.5; // g CO₂ / Mo
+    const co2Saved =
+      pctRaw <= 0
+        ? "0.00 g"
+        : ((absDeltaBytes / (1024 * 1024)) * co2PerMB).toFixed(2) + " g";
+
+    const orig = formatBytes(origBytes);
+    const chosenSize = formatBytes(chosenSizeBytes);
+    const bytesLabel = isHeavier
+      ? "Octets supplémentaires"
+      : "Octets économisés";
+    const gainLabel = isHeavier ? "Perte" : "Gain";
+
+    const html = `
+      <ul class="bilan-list" role="list">
+        <li>Poids originel (${meta.original.mime
+          .split("/")
+          .pop()
+          .toUpperCase()}) : <span class="bilan-val">${orig}</span></li>
+        <li>Poids compressé (${chosenFormat}) : <span class="bilan-val">${chosenSize}</span></li>
+        <li>${bytesLabel} : <span class="bilan-val">${formatBytes(
+      absDeltaBytes
+    )}</span></li>
+        <li>${gainLabel} : <span class="bilan-gain${
+      isHeavier ? " is-negative" : ""
+    }">${pctStr}</span></li>
+        <li>Réduction CO₂ estimée : <span class="bilan-val">${co2Saved}</span></li>
+      </ul>
+      <p class="metrics-note bilan-note"><small>Estimation CO₂ (~0,5 g / Mo transféré) source indicative : <a href="https://www.websitecarbon.com/" target="_blank" rel="noopener noreferrer">Website Carbon</a></small></p>
+    `;
+    bilanContent.innerHTML = html;
+    bilanContent.dataset.state = "ready";
+  }
 }
 
 function makeDownloadRow(data) {
@@ -549,6 +1113,12 @@ function formatBytes(bytes) {
   return n.toFixed(n < 10 && i > 0 ? 2 : 0) + " " + units[i];
 }
 
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 function announceStatus(message, busy, hideVisually = false) {
   statusEl.textContent = message;
   if (busy) {
@@ -601,7 +1171,7 @@ function ensurePreviewStructure() {
   figProcessed.innerHTML = `
   <figcaption data-layout=\"repel\">
   <span class=\"proc-title\">Image optimisée</span>
-  <span class=\"proc-values\">
+  <span class=\"proc-values\" data-layout=\"cluster\" data-gap=\"xs\">
     <span class=\"proc-dim visually-hidden\"></span>
     <span class=\"proc-size pill\"></span>
     <span class=\"proc-gain gain pill\"></span>
