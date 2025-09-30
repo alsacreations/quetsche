@@ -288,45 +288,51 @@ th {
   display: none !important;
 }
 
-/* Pile d'aperçu : image compressée + overlay original */
-.preview-stack {
+/* Conteneur de comparaison d'images */
+.image-compare {
   position: relative;
   display: inline-block;
   background-color: var(--layer-1);
   border-radius: var(--radius-md);
-  cursor: crosshair;
-  & img {
-    display: block;
-    width: auto; /* n’agrandit pas au-delà de la taille intrinsèque */
-    max-width: 100%;
-    height: auto;
-    border-radius: var(--radius-md);
-  }
-  & .orig-preview {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity var(--transition-duration) ease;
-  }
-}
-/* état swap : figure-processed contrôle visibilité */
-.figure-processed.showing-original .orig-preview {
-  opacity: 1;
-}
-.figure-processed.showing-original .proc-preview {
-  opacity: 0;
-  transition: opacity var(--transition-duration) ease;
 }
 
-/* état swap : changer le curseur pendant le maintien */
-.figure-processed.showing-original .preview-stack {
-  cursor: cell;
-}
-
-.preview-hint {
+/* Images superposées */
+.proc-preview,
+.orig-preview {
   display: block;
-  margin-block: var(--spacing-4);
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
 }
+
+/* Bouton de swap en superposition */
+.swap-button {
+  /* Positionnement en superposition */
+  position: absolute;
+  top: var(--spacing-s);
+  right: var(--spacing-s);
+
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--text-16);
+  padding: var(--spacing-8) var(--spacing-8);
+  background-color: var(--on-surface);
+  color: var(--surface);
+  border: none;
+  border-radius: var(--radius-md);
+  box-shadow: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--transition-duration),
+    color var(--transition-duration);
+
+  &:hover,
+  &:focus-visible {
+    background-color: oklch(from var(--on-surface) calc(l * 0.9) c h);
+  }
+}
+
 .inline-download-wrapper {
   display: inline-block;
 }
@@ -364,13 +370,6 @@ th {
 
 [data-gap="xl"] {
   gap: var(--gap-xl);
-}
-
-/* Empêche l’upscale des images d’aperçu dans la pile (surclasse .figure img) */
-.figure .preview-stack img {
-  width: auto;
-  max-width: 100%;
-  height: auto;
 }
 
 details {
@@ -639,8 +638,7 @@ details {
 /* Titre unifié pour image simple et batch */
 .proc-title {
   display: flex;
-  flex-direction: column;
-  gap: var(--gap-xs);
+  min-width: 14rem;
 
   & strong {
     font-size: var(--text-m);
