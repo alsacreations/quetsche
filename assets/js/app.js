@@ -234,6 +234,18 @@ async function handleFile(file) {
   announceStatus("Lecture du fichier…", true);
   // Nouveau fichier : on retire l'état résultat précédent
   dropSection?.classList.remove("has-result");
+
+  // Réinitialiser l'état batch si on était en mode batch
+  if (batchState.active) {
+    batchState = {
+      active: false,
+      cancelled: false,
+      total: 0,
+      current: 0,
+      results: [],
+    };
+  }
+
   const arrayBuffer = await file.arrayBuffer();
   const blob = new Blob([arrayBuffer], { type: file.type });
   const url = URL.createObjectURL(blob);
@@ -251,6 +263,15 @@ async function handleFile(file) {
     updateFormatLabels();
     // Masquer contenu compression regroupé
     if (compressResults) compressResults.hidden = true;
+    // Nettoyer complètement compareInner si on vient d'un batch
+    // Vérifier "batch" OU "true" car après un batch, dataset.built peut valoir "true"
+    if (
+      compareInner.dataset.built === "batch" ||
+      compareInner.dataset.built === "true"
+    ) {
+      compareInner.innerHTML = "";
+      compareInner.removeAttribute("data-built");
+    }
     ensurePreviewStructure();
     // Aperçu original supprimé : seules dimensions conservées ailleurs (bilan / labels)
     compare.hidden = false;
@@ -468,6 +489,25 @@ function displayBatchResults() {
   });
 
   compareInner.appendChild(ol);
+
+  // Ajouter le bouton "Télécharger tout" sous la liste
+  const btnWrapper = document.createElement("div");
+  btnWrapper.setAttribute("data-layout", "cluster");
+  btnWrapper.setAttribute("data-justify", "end");
+  btnWrapper.style.marginTop = "var(--spacing-s)";
+
+  const btnZip = document.createElement("a");
+  btnZip.className = "inline-download";
+  btnZip.href = "#";
+  btnZip.id = "btnDownloadZip";
+  btnZip.textContent = "Télécharger tout (ZIP)";
+  btnZip.setAttribute("aria-label", "Télécharger toutes les images en ZIP");
+
+  btnWrapper.appendChild(btnZip);
+  compareInner.appendChild(btnWrapper);
+
+  // Attacher le gestionnaire de téléchargement ZIP
+  attachZipDownloadHandler();
 }
 
 function createBatchResultItem(result, index) {
@@ -794,6 +834,13 @@ function buildResults(data) {
   currentMeta = meta;
   // Ajoute la classe signalant qu'un résultat est disponible
   dropSection?.classList.add("has-result");
+
+  // Nettoyer complètement compareInner si on vient d'un batch
+  if (compareInner.dataset.built === "batch") {
+    compareInner.innerHTML = "";
+    compareInner.removeAttribute("data-built");
+  }
+
   ensurePreviewStructure();
   updateResizeLabels();
   updateFormatLabels();
@@ -829,52 +876,57 @@ function buildResults(data) {
   }
   procDim.textContent = `${meta.processed.width}×${meta.processed.height} pixels`;
   // Plus d'affichage direct de l'original dans la zone visuelle de comparaison
-  if (downloadTbody) downloadTbody.innerHTML = "";
-  const rows = [];
-  rows.push(
-    makeDownloadRow({
-      label: "Originale",
-      blob: originalImage.blob,
-      fileName: meta.fileName,
-      mime: meta.original.mime || originalImage.blob.type,
-      size: meta.original.size,
-      optimized: false,
-    })
-  );
-  rows.push(
-    makeDownloadRow({
-      label: "Compressée",
-      blob: previews.processed.blob,
-      fileName: deriveFileName(meta.fileName, meta.processed.mime),
-      mime: meta.processed.mime,
-      size: meta.processed.size,
-      optimized: false,
-    })
-  );
-  if (previews.webp) {
+
+  // Ne créer les lignes de téléchargement que si originalImage existe (mode simple)
+  if (originalImage && downloadTbody) {
+    downloadTbody.innerHTML = "";
+    const rows = [];
     rows.push(
       makeDownloadRow({
-        label: "WebP",
-        blob: previews.webp.blob,
-        fileName: deriveFileName(meta.fileName, "image/webp"),
-        mime: "image/webp",
-        size: previews.webp.blob.size,
+        label: "Originale",
+        blob: originalImage.blob,
+        fileName: meta.fileName,
+        mime: meta.original.mime || originalImage.blob.type,
+        size: meta.original.size,
         optimized: false,
       })
     );
-  }
-  const candidates = rows.filter((r) => r.dataset.size > 0);
-  if (candidates.length) {
-    const best = candidates.reduce((a, b) =>
-      Number(b.dataset.size) < Number(a.dataset.size) ? b : a
+    rows.push(
+      makeDownloadRow({
+        label: "Compressée",
+        blob: previews.processed.blob,
+        fileName: deriveFileName(meta.fileName, meta.processed.mime),
+        mime: meta.processed.mime,
+        size: meta.processed.size,
+        optimized: false,
+      })
     );
-    best.classList.add("is-best");
-    const cell = best.querySelector('[data-col="best"]');
-    if (cell)
-      cell.innerHTML =
-        '<span class="best-indicator" role="img" aria-label="Version la plus optimisée">✔</span>';
+    if (previews.webp) {
+      rows.push(
+        makeDownloadRow({
+          label: "WebP",
+          blob: previews.webp.blob,
+          fileName: deriveFileName(meta.fileName, "image/webp"),
+          mime: "image/webp",
+          size: previews.webp.blob.size,
+          optimized: false,
+        })
+      );
+    }
+    const candidates = rows.filter((r) => r.dataset.size > 0);
+    if (candidates.length) {
+      const best = candidates.reduce((a, b) =>
+        Number(b.dataset.size) < Number(a.dataset.size) ? b : a
+      );
+      best.classList.add("is-best");
+      const cell = best.querySelector('[data-col="best"]');
+      if (cell)
+        cell.innerHTML =
+          '<span class="best-indicator" role="img" aria-label="Version la plus optimisée">✔</span>';
+    }
+    rows.forEach((tr) => downloadTbody.appendChild(tr));
   }
-  if (downloadTbody) rows.forEach((tr) => downloadTbody.appendChild(tr));
+
   updateDisplayedFormat();
   if (compressResults) compressResults.hidden = false;
   announceStatus("Compression effectuée", false, true);
@@ -955,25 +1007,11 @@ function updateBilanPanel(data) {
         <li>Réduction CO₂ estimée : <span class="bilan-val">${co2Saved} g</span></li>
       </ul>
       <p class="metrics-note bilan-note"><small>Estimation CO₂ (~0,5 g / Mo transféré) source indicative : <a href="https://www.websitecarbon.com/" target="_blank" rel="noopener noreferrer">Website Carbon</a></small></p>
-      <span class="inline-download-wrapper"></span>
     `;
     bilanContent.innerHTML = html;
     bilanContent.dataset.state = "ready";
 
-    // Injecter le lien de téléchargement ZIP après l'injection HTML
-    const wrapper = bilanContent.querySelector(".inline-download-wrapper");
-    if (wrapper) {
-      const link = document.createElement("a");
-      link.className = "inline-download";
-      link.href = "#";
-      link.id = "btnDownloadZip";
-      link.textContent = "Télécharger tout (ZIP)";
-      link.setAttribute("aria-label", "Télécharger toutes les images en ZIP");
-      wrapper.appendChild(link);
-    }
-
-    // Réattacher le gestionnaire du bouton ZIP
-    attachZipDownloadHandler();
+    // Note : Le bouton "Télécharger tout (ZIP)" est maintenant placé sous la liste dans compareInner
   } else {
     // Mode simple : une seule image (ancien updateBilan)
     if (!currentMeta || !currentPreviews) return;
@@ -1142,7 +1180,7 @@ function focusResultsHeading() {
 }
 
 function ensurePreviewStructure() {
-  // Si la structure existe déjà, on s'assure que le hint est sous l'image (hors figcaption)
+  // Si la structure existe déjà en mode simple (pas batch), on réutilise
   if (compareInner.dataset.built === "true") {
     const existingFigure = compareInner.querySelector(".figure-processed");
     if (existingFigure) {
@@ -1152,6 +1190,8 @@ function ensurePreviewStructure() {
     }
     return;
   }
+
+  // Si on vient d'un mode batch, on reconstruit complètement
   compareInner.innerHTML = "";
   const figProcessed = document.createElement("figure");
   figProcessed.className = "figure figure-processed";
