@@ -162,9 +162,48 @@ function onWorkerMessage(e) {
   }
 }
 
+// Validation des formats de fichiers supportés
+const SUPPORTED_FORMATS = ["image/jpeg", "image/png", "image/gif"];
+
+// Afficher une erreur dans le popover
+function showErrorPopover(message) {
+  const popover = document.getElementById("errorPopover");
+  const messageEl = document.getElementById("errorPopoverMessage");
+
+  if (popover && messageEl) {
+    messageEl.textContent = message;
+    popover.showPopover();
+  }
+}
+
+function validateFiles(files) {
+  const unsupported = files.filter(
+    (file) => !SUPPORTED_FORMATS.includes(file.type)
+  );
+
+  if (unsupported.length > 0) {
+    const fileNames = unsupported.map((f) => f.name).join(", ");
+    const message =
+      unsupported.length === 1
+        ? `Le format du fichier "${fileNames}" n'est pas supporté. Formats acceptés : JPEG, PNG, GIF.`
+        : `Les formats de ces fichiers ne sont pas supportés : ${fileNames}. Formats acceptés : JPEG, PNG, GIF.`;
+
+    showErrorPopover(message);
+    return false;
+  }
+
+  return true;
+}
+
 fileInput.addEventListener("change", () => {
   if (!fileInput.files?.length) return;
   const files = Array.from(fileInput.files);
+
+  // Valider les formats avant traitement
+  if (!validateFiles(files)) {
+    fileInput.value = ""; // reset
+    return;
+  }
 
   // Détection auto : 1 image = mode simple, 2+ = mode batch
   if (files.length === 1) {
@@ -1162,8 +1201,15 @@ function announceStatus(message, busy, hideVisually = false) {
   statusEl.textContent = message;
   if (busy) {
     resultsSection?.setAttribute("aria-busy", "true");
+    statusEl.classList.remove("status-error");
   } else {
     resultsSection?.removeAttribute("aria-busy");
+    // Ajouter la classe d'erreur si busy === false (indique souvent une erreur)
+    if (message && !hideVisually) {
+      statusEl.classList.add("status-error");
+    } else {
+      statusEl.classList.remove("status-error");
+    }
   }
   if (hideVisually) {
     statusEl.classList.add("visually-hidden");

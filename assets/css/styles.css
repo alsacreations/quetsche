@@ -311,7 +311,7 @@ th {
   /* Positionnement en superposition */
   position: absolute;
   top: var(--spacing-s);
-  right: var(--spacing-s);
+  left: var(--spacing-s);
 
   display: inline-flex;
   align-items: center;
@@ -468,7 +468,65 @@ details {
 .status {
   font-size: var(--text-16);
   margin: 0;
+  padding: var(--spacing-xs) 0;
 }
+
+.status-error {
+  color: var(--error, oklch(50.54% 0.19 27.52));
+  font-weight: var(--font-weight-semibold, 600);
+}
+
+/* Popover d'erreur */
+.error-popover {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-start: 50%;
+  translate: 0 -50%;
+  margin-inline: auto;
+  max-inline-size: 90%;
+  inline-size: max-content;
+  max-inline-size: 32rem;
+  padding: var(--spacing-m);
+  background-color: var(--surface);
+  color: var(--on-surface);
+  border: 2px solid var(--error, oklch(50.54% 0.19 27.52));
+  border-radius: var(--radius-m, 0.5rem);
+  box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.2);
+}
+
+.error-popover::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.error-popover-close {
+  position: absolute;
+  top: var(--spacing-s);
+  right: var(--spacing-s);
+  inline-size: 2rem;
+  block-size: 2rem;
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  color: var(--on-surface);
+  font-size: var(--text-20);
+  line-height: 1;
+  cursor: pointer;
+  border-radius: var(--radius-s, 0.25rem);
+
+  &:hover,
+  &:focus {
+    background-color: var(--layer-1);
+  }
+}
+
+.error-popover-message {
+  margin: 0;
+  padding-inline-end: var(--spacing-l);
+  color: var(--error, oklch(50.54% 0.19 27.52));
+  font-weight: var(--font-weight-semibold, 600);
+  font-size: var(--text-16);
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

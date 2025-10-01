@@ -311,6 +311,20 @@
         </div>
       </section>
 
+      <!-- Popover pour les messages d'erreur -->
+      <div id="errorPopover" popover class="error-popover">
+        <button
+          type="button"
+          popovertarget="errorPopover"
+          popovertargetaction="hide"
+          class="error-popover-close"
+          aria-label="Fermer le message"
+        >
+          ✕
+        </button>
+        <p id="errorPopoverMessage" class="error-popover-message"></p>
+      </div>
+
       <!-- FAQ -->
       <section
         class="faq"
