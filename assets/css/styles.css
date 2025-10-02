@@ -641,12 +641,11 @@ details {
 .gradient-background {
   background: linear-gradient(
     170deg,
-    oklch(41.673% 0.21521 275.576 / 0.4),
-    oklch(80% 0.24362 138.122 / 0.4),
-    oklch(57.679% 0.20373 335.4 / 0.5)
+    oklch(70% 0.26 138.122 / 0.6),
+    oklch(50% 0.26 335.4 / 0.6)
   );
-  background-size: 300% 300%;
-  animation: gradient-animation 20s linear infinite alternate;
+  /* background-size: 300% 300%; */
+  /* animation: gradient-animation 20s linear infinite alternate; */
 }
 
 @keyframes gradient-animation {
