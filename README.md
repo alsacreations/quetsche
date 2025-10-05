@@ -5,7 +5,7 @@ Outil ultra-simple de compression et (re)dimensionnement d'images entièrement c
 ## Objectifs
 
 - Importer une image JPEG ou PNG
-- (Optionnel) Redimensionner selon un préréglage (Original / 1200px / 800px)
+- (Optionnel) Redimensionner selon un préréglage (Original / 1400px)
 - Recompresser le fichier (qualité fixe 75%)
 - Produire une version compressée + une version WebP
 - Afficher des métriques (gain %, octets économisés, bits/pixel, estimation CO₂)
@@ -56,8 +56,7 @@ photo-mini/
 Préréglages (radios) :
 
 - Original (aucun redimensionnement)
-- Web 1200 (plus grand côté ramené à 1200px)
-- Email 800 (plus grand côté ramené à 800px)
+- Web 1400 (plus grand côté ramené à 1400px)
 
 Ratio préservé : seul le plus grand côté est contraint.
 

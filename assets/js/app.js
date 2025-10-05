@@ -56,8 +56,8 @@ function updateResizeLabels() {
     origSpan.textContent = `(${originalImage.width}×${originalImage.height}px)`;
   }
   if (originalImage && webSpan) {
-    // Calcule la dimension après contrainte 1200 sur le plus grand côté
-    const target = 1200;
+    // Calcule la dimension après contrainte 1400 sur le plus grand côté
+    const target = 1400;
     const w = originalImage.width;
     const h = originalImage.height;
     if (Math.max(w, h) <= target) {
@@ -81,6 +81,29 @@ function updateResizeLabels() {
 function updateFormatLabels() {
   const formatSpan = document.querySelector('[data-role="format-original"]');
   if (!formatSpan) return;
+
+  // Mode batch : vérifier si les formats sont multiples
+  if (batchState.active && batchState.results.length > 0) {
+    const formats = new Set();
+    batchState.results.forEach((result) => {
+      if (result.status === "success" && result.meta?.original?.mime) {
+        let fmt = result.meta.original.mime.split("/")[1];
+        if (fmt === "jpeg") fmt = "jpg"; // normalisation
+        formats.add(fmt.toUpperCase());
+      }
+    });
+
+    if (formats.size > 1) {
+      formatSpan.textContent = "(multiples)";
+    } else if (formats.size === 1) {
+      formatSpan.textContent = `(${Array.from(formats)[0]})`;
+    } else {
+      formatSpan.textContent = "";
+    }
+    return;
+  }
+
+  // Mode simple image
   if (originalImage) {
     const type = originalImage.blob.type || ""; // ex: image/jpeg
     let fmt = "";
@@ -547,6 +570,9 @@ function displayBatchResults() {
 
   // Attacher le gestionnaire de téléchargement ZIP
   attachZipDownloadHandler();
+
+  // Mettre à jour le label du format
+  updateFormatLabels();
 }
 
 function createBatchResultItem(result, index) {
@@ -828,7 +854,7 @@ async function process() {
   const quality = FIXED_QUALITY;
   let maxSide = null;
   const checked = document.querySelector('input[name="resize"]:checked');
-  if (checked && (checked.value !== "original" || checked.value === "1200")) {
+  if (checked && (checked.value !== "original" || checked.value === "1400")) {
     maxSide = Number(checked.value);
   }
   let targetW = originalImage.width;
@@ -968,18 +994,42 @@ function buildResults(data) {
 
   updateDisplayedFormat();
   if (compressResults) compressResults.hidden = false;
+
+  // Ouvrir le details des réglages avancés
+  const advancedDetails = document.querySelector(".advanced-panels details");
+  if (advancedDetails) advancedDetails.open = true;
+
   announceStatus("Compression effectuée", false, true);
   updateBilanPanel();
 }
 
 function updateDisplayedFormat() {
   if (!currentPreviews || !currentMeta) return;
+  // Ne rien faire en mode batch (updateBatchDisplay gère l'affichage)
+  if (batchState.active) return;
+
   const previews = currentPreviews;
   const meta = currentMeta;
   const chosen = document.querySelector('input[name="format"]:checked');
   const mode = chosen ? chosen.value : "processed";
   const current =
     mode === "webp" && previews.webp ? previews.webp : previews.processed;
+
+  // Déterminer le format affiché
+  let formatLabel = "";
+  if (mode === "webp" && previews.webp) {
+    formatLabel = "WebP";
+  } else if (meta.processed.mime) {
+    const mimeType = meta.processed.mime.split("/")[1];
+    formatLabel = mimeType === "jpeg" ? "JPG" : mimeType.toUpperCase();
+  }
+
+  // Mettre à jour le titre avec le format (uniquement en mode simple image)
+  const procTitle = document.querySelector(".figure-processed .proc-title");
+  if (procTitle && !procTitle.textContent.includes("originale")) {
+    procTitle.textContent = `Image optimisée (${formatLabel})`;
+  }
+
   if (procPreview && current) {
     procPreview.src = current.url;
     procPreview.alt = `Aperçu image compressée (${
@@ -1272,16 +1322,41 @@ function ensurePreviewStructure() {
   let showingOriginal = false;
   swapButton.addEventListener("click", () => {
     showingOriginal = !showingOriginal;
+
+    // Déterminer le format affiché
+    const getFormatLabel = () => {
+      if (!currentMeta) return "";
+      const chosen = document.querySelector('input[name="format"]:checked');
+      const mode = chosen ? chosen.value : "processed";
+
+      if (showingOriginal) {
+        // Format original
+        const mimeType = currentMeta.original.mime.split("/")[1];
+        return mimeType === "jpeg" ? "JPG" : mimeType.toUpperCase();
+      } else {
+        // Format optimisé
+        if (mode === "webp" && currentPreviews?.webp) {
+          return "WebP";
+        } else if (currentMeta.processed.mime) {
+          const mimeType = currentMeta.processed.mime.split("/")[1];
+          return mimeType === "jpeg" ? "JPG" : mimeType.toUpperCase();
+        }
+      }
+      return "";
+    };
+
     if (showingOriginal) {
       procPreview.style.display = "none";
       origPreview.style.display = "block";
-      procTitle.textContent = "Image originale";
+      const formatLabel = getFormatLabel();
+      procTitle.textContent = `Image originale (${formatLabel})`;
       swapButton.textContent = "Voir l'image compressée";
       swapButton.setAttribute("aria-pressed", "true");
     } else {
       procPreview.style.display = "block";
       origPreview.style.display = "none";
-      procTitle.textContent = "Image optimisée";
+      const formatLabel = getFormatLabel();
+      procTitle.textContent = `Image optimisée (${formatLabel})`;
       swapButton.textContent = "Voir l'image originale";
       swapButton.setAttribute("aria-pressed", "false");
     }
